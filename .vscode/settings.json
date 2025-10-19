@@ -57,17 +57,17 @@
   "pylint.args": [
       "--rcfile=.pylintrc"
   ],
-  "python.analysis.typeCheckingMode": "basic",
-  "python.analysis.useLibraryCodeForTypes": true,
-  "python.analysis.diagnosticSeverityOverrides": {
-      "reportGeneralTypeIssues": "error",
-      "reportTypeVarUsage": "error",
-      "reportUnknownMemberType": "none"
-  },
   "python.autoComplete.extraPaths": [
     "${workspaceFolder}/backend"
   ],
-  "python.analysis.extraPaths": [
+  "cursorpyright.analysis.diagnosticSeverityOverrides": {
+    "reportGeneralTypeIssues": "error",
+    "reportTypeVarUsage": "error",
+    "reportUnknownMemberType": "none"
+  },
+  "cursorpyright.analysis.extraPaths": [
     "${workspaceFolder}/backend"
   ],
+  "cursorpyright.analysis.typeCheckingMode": "basic",
+  "cursorpyright.analysis.useLibraryCodeForTypes": true,
 }
