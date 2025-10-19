@@ -1,3 +1,3 @@
-# Fullstack Template
+# [Sashay](https://boardgamegeek.com/boardgame/10838/sashay)
 
-A NextJS Frontend and FastAPI Backend template to hit the ground running instantly
+An online version of my favorite childhood board game
