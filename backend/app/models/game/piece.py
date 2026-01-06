@@ -1,5 +1,6 @@
 import uuid
 from abc import ABC, abstractmethod
+from collections import deque
 from enum import StrEnum
 
 from pydantic import BaseModel, Field
@@ -33,6 +34,7 @@ class Piece(BaseModel, ABC):
 
 class Dancer(Piece):
     name: PieceType = PieceType.DANCER
+    is_spy: bool
 
     def get_possible_new_positions(self, game_board: GameBoard) -> list[Position]:
         possible_moves = []
@@ -87,8 +89,53 @@ class Master(Piece):
     name: PieceType = PieceType.MASTER
 
     def get_possible_new_positions(self, game_board: GameBoard) -> list[Position]:
-        """Master movement rules - TODO: Implement"""
-        return []
+        """Master can move:
+        - Orthogonally (top/down/left/right): exactly 1 space only
+        - Diagonally: unlimited distance, but only on squares of the same checkerboard color
+        """
+        possible_moves = []
+        row, col = self.position.row, self.position.col
+
+        # Orthogonal moves: exactly 1 space (top, right, bottom, left)
+        # Top
+        if row - 1 >= 0 and game_board.board[row - 1][col] is None:
+            possible_moves.append(Position(row=row - 1, col=col))
+
+        # Right
+        if col + 1 < COLS and game_board.board[row][col + 1] is None:
+            possible_moves.append(Position(row=row, col=col + 1))
+
+        # Bottom
+        if row + 1 < ROWS and game_board.board[row + 1][col] is None:
+            possible_moves.append(Position(row=row + 1, col=col))
+
+        # Left
+        if col - 1 >= 0 and game_board.board[row][col - 1] is None:
+            possible_moves.append(Position(row=row, col=col - 1))
+
+        # Diagonal moves: can move to any reachable square of the same checkerboard color
+        # The Master can change diagonal direction, but must have a clear path
+        visited = set[tuple[int, int]]()
+        queue = deque[tuple[int, int]]([(row, col)])
+        visited.add((row, col))
+        diagonal_directions = [(-1, -1), (-1, 1), (1, 1), (1, -1)]
+
+        while queue:
+            current_row, current_col = queue.popleft()
+            for dr, dc in diagonal_directions:
+                new_row, new_col = current_row + dr, current_col + dc
+                if new_row < 0 or new_row >= ROWS or new_col < 0 or new_col >= COLS:
+                    continue
+
+                if (new_row, new_col) in visited:
+                    continue
+
+                if game_board.board[new_row][new_col] is None:
+                    visited.add((new_row, new_col))
+                    queue.append((new_row, new_col))
+                    possible_moves.append(Position(row=new_row, col=new_col))
+
+        return possible_moves
 
     def is_piece_surrounded(self, game_board: GameBoard) -> bool:
         """Master is surrounded if all 8 adjacent positions (including diagonals) are blocked.

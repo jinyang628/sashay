@@ -1,6 +1,8 @@
-from app.models.game.base import COLS, ROWS, Position
+from typing import Optional
+
+from app.models.game.base import COLS, ROWS, Player, Position
 from app.models.game.board import GameBoard
-from app.models.game.piece import Piece
+from app.models.game.piece import Dancer, Piece
 
 
 class GameEngine:
@@ -37,3 +39,25 @@ class GameEngine:
                     self.game_board.remove_piece(piece=neighbor_piece)
                     captured_pieces.append(neighbor_piece)
         return captured_pieces
+
+    def process_potential_win(self) -> Optional[Player]:
+        """
+        Determine if either player has won the game.
+
+        - Player A (player 1) wins if they have a spy Dancer on the top row (index 0).
+        - Player B (player 2) wins if they have a spy Dancer on the bottom row (index ROWS - 1).
+        - Returns None if there is currently no winner.
+        """
+        top_row_index = 0
+        for col in range(COLS):
+            piece = self.game_board.board[top_row_index][col]
+            if isinstance(piece, Dancer) and piece.is_spy and piece.player == Player.A:
+                return Player.A
+
+        bottom_row_index = ROWS - 1
+        for col in range(COLS):
+            piece = self.game_board.board[bottom_row_index][col]
+            if isinstance(piece, Dancer) and piece.is_spy and piece.player == Player.B:
+                return Player.B
+
+        return None
