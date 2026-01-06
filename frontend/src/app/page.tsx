@@ -1,40 +1,21 @@
-'use client';
+import GameBoard from '@/components/game/board';
 
-import { useState } from 'react';
-
-import { chat } from '@/actions/messages';
-
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-
-import { messageRequestSchema } from '@/types/messages';
+import { COLS, ROWS } from '@/lib/constants';
 
 export default function Home() {
-  const [message, setMessage] = useState('');
-  const [response, setResponse] = useState('');
   return (
-    <div className="flex flex-col items-center justify-center gap-4">
-      <h1 className="text-4xl font-bold">Chat with your data</h1>
-      <Input
-        value={message}
-        onChange={(e) => setMessage(e.target.value)}
-        placeholder="Enter a message"
-        className="w-full"
-        autoFocus
-      />
-      <Button
-        onClick={async () => {
-          const messageRequest = messageRequestSchema.parse({
-            id: null,
-            content: message,
-          });
-          const response = await chat(messageRequest);
-          setResponse(response.content);
+    <div className="bg-background flex h-[50%] w-full flex-col items-center justify-center overflow-hidden">
+      <div
+        className="grid w-full max-w-3xl gap-2 overflow-hidden rounded-lg p-2 shadow-sm"
+        style={{
+          maxHeight: '85dvh',
+          aspectRatio: `${COLS} / ${ROWS}`,
+          gridTemplateColumns: `repeat(${COLS}, minmax(0, 1fr))`,
+          gridTemplateRows: `repeat(${ROWS}, minmax(0, 1fr))`,
         }}
       >
-        Send
-      </Button>
-      <p>{response}</p>
+        <GameBoard />
+      </div>
     </div>
   );
 }
