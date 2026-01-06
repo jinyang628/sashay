@@ -1,51 +1,39 @@
-from app.models.game.base import Position
-from app.models.game.board import Board
-from app.models.game.piece import Dancer, Master, Piece, PieceType
+from app.models.game.base import COLS, ROWS, Position
+from app.models.game.board import GameBoard
+from app.models.game.piece import Piece
 
 
 class GameEngine:
-    def __init__(self, board: Board, pieces: list[Piece]):
-        self.board = board
+    def __init__(self, pieces: list[Piece]):
+        self.game_board = GameBoard(pieces=pieces)
         self.pieces = pieces
-        for piece in pieces:
-            self.board.occupied_positions[piece.position] = piece
 
-    def get_possible_moves(self, piece: Piece) -> list[Position]:
-        match piece.piece_type:
-            case PieceType.DANCER:
-                if isinstance(piece, Dancer):
-                    return self._get_dancer_moves(piece=piece)
-                raise ValueError(f"Piece type mismatch: {piece.piece_type}")
-            case PieceType.MASTER:
-                if isinstance(piece, Master):
-                    return self._get_master_moves(piece=piece)
-                raise ValueError(f"Piece type mismatch: {piece.piece_type}")
-            case _:
-                raise ValueError(f"Invalid piece type: {piece.piece_type}")
+    def get_possible_new_positions(self, piece: Piece) -> list[Position]:
+        return piece.get_possible_new_positions(game_board=self.game_board)
 
-    def _get_dancer_moves(self, piece: Dancer) -> list[Position]:
-        possible_moves = []
-        for i in range(self.board.rows):
-            if (
-                Position(row=i, col=piece.position.col)
-                not in self.board.occupied_positions
-            ):
-                possible_moves.append(Position(row=i, col=piece.position.col))
-
-        for i in range(self.board.cols):
-            if (
-                Position(row=piece.position.row, col=i)
-                not in self.board.occupied_positions
-            ):
-                possible_moves.append(Position(row=piece.position.row, col=i))
-
-        return possible_moves
-
-    def _get_master_moves(self, piece: Master) -> list[Position]:
-        return []
-
-    def move_piece(self, piece: Piece, position: Position) -> None:
+    def move_piece(self, piece: Piece, new_position: Position) -> None:
         original_position = piece.position
-        piece.move(new_position=position)
-        del self.board.occupied_positions[original_position]
-        self.board.occupied_positions[position] = piece
+        piece.move(new_position=new_position)
+        self.game_board.board[original_position.row][original_position.col] = None
+        self.game_board.board[new_position.row][new_position.col] = piece
+
+    def process_potential_capture(
+        self, piece: Piece, new_position: Position
+    ) -> list[Piece]:
+        captured_pieces = []
+        for i in range(new_position.row - 1, new_position.row + 2):
+            for j in range(new_position.col - 1, new_position.col + 2):
+                if i < 0 or i >= ROWS or j < 0 or j >= COLS:
+                    continue
+                neighbor_piece = self.game_board.board[i][j]
+                if neighbor_piece is None:
+                    continue
+                if not isinstance(neighbor_piece, Piece):
+                    raise TypeError(f"Expected Piece, got {type(neighbor_piece)}")
+                if (
+                    neighbor_piece.player != piece.player
+                    and neighbor_piece.is_piece_surrounded(game_board=self.game_board)
+                ):
+                    self.game_board.remove_piece(piece=neighbor_piece)
+                    captured_pieces.append(neighbor_piece)
+        return captured_pieces
