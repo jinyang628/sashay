@@ -2,10 +2,13 @@
 
 import { useRouter } from 'next/navigation';
 
+import { createRoom } from '@/actions/room/create';
 import { gameIdAtom } from '@/state/game';
 import { useSetAtom } from 'jotai';
 
 import { Button } from '@/components/ui/button';
+
+import { createRoomRequestSchema } from '@/types/room';
 
 import { getRandomGameId } from '@/lib/utils';
 
@@ -13,9 +16,13 @@ export default function CreateRoomButton() {
   const router = useRouter();
   const setGameId = useSetAtom(gameIdAtom);
 
-  const handleCreateRoom = () => {
+  const handleCreateRoom = async () => {
     const gameId = getRandomGameId();
     setGameId(gameId);
+    const createRoomRequest = createRoomRequestSchema.parse({
+      gameId: gameId,
+    });
+    await createRoom(createRoomRequest);
     router.push(`/room/${gameId}`);
   };
 
