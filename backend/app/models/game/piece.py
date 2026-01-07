@@ -19,6 +19,8 @@ class Piece(BaseModel, ABC):
     piece_type: PieceType
     player: Player
     position: Position
+    is_spy: bool
+    name: PieceType
 
     def move(self, new_position: Position) -> None:
         self.position = new_position
@@ -34,7 +36,6 @@ class Piece(BaseModel, ABC):
 
 class Dancer(Piece):
     name: PieceType = PieceType.DANCER
-    is_spy: bool
 
     def get_possible_new_positions(self, game_board: GameBoard) -> list[Position]:
         possible_moves = []

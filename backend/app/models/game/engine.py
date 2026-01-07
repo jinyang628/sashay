@@ -6,7 +6,7 @@ from app.models.game.piece import Dancer, Piece
 
 
 class GameEngine:
-    def __init__(self, pieces: list[Piece]):
+    def __init__(self, pieces: list[Piece], player_1_ready: bool, player_2_ready: bool):
         self.game_board = GameBoard(pieces=pieces)
         self.pieces = pieces
 
