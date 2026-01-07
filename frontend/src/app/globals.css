@@ -41,6 +41,14 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
+  --color-sashay-gold: oklch(0.88 0.08 88);
+  --color-sashay-amber: oklch(0.55 0.14 71);
+  --color-sashay-rose: oklch(0.51 0.15 24);
+  --color-sashay-bg-dark: oklch(0.18 0.02 45);
+  --animate-orb-drift-slow: orb-drift 2s ease-in-out infinite alternate;
+  --animate-orb-drift-slower: orb-drift 4s ease-in-out infinite alternate;
+  --animate-title-flicker: title-flicker 2s ease-in-out infinite;
 }
 
 :root {
@@ -76,6 +84,12 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  --sashay-amber: oklch(0.78 0.14 80);
+  --sashay-amber-soft: oklch(0.72 0.12 80 / 0.35);
+  --sashay-crimson: oklch(0.55 0.15 25);
+  --sashay-deep-bg: oklch(0.18 0.03 50);
+  --sashay-orb-1: rgba(148, 119, 67, 0.45);
+  --sashay-orb-2: rgba(94, 46, 33, 0.5);
 }
 
 .dark {
@@ -110,6 +124,10 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+  --sashay-amber: oklch(0.72 0.15 80);
+  --sashay-amber-soft: oklch(0.68 0.13 80 / 0.45);
+  --sashay-crimson: oklch(0.5 0.16 25);
+  --sashay-deep-bg: oklch(0.14 0.03 40);
 }
 
 @layer base {
@@ -118,5 +136,54 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .animate-orb-drift-slow {
+    animation: var(--animate-orb-drift-slow);
+  }
+  .animate-orb-drift-slower {
+    animation: var(--animate-orb-drift-slower);
+  }
+  .animate-title-flicker {
+    animation: var(--animate-title-flicker);
+  }
+}
+@keyframes orb-drift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translate3d(8px, -6px, 0) scale(1.06);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate3d(-6px, 10px, 0) scale(1.02);
+    opacity: 0.8;
+  }
+}
+
+@keyframes title-flicker {
+  0%,
+  92%,
+  100% {
+    text-shadow:
+      0 0 14px rgba(251, 191, 36, 0.25),
+      0 0 32px rgba(127, 29, 29, 0.35);
+    opacity: 1;
+  }
+  94% {
+    text-shadow:
+      0 0 4px rgba(251, 191, 36, 0.4),
+      0 0 18px rgba(127, 29, 29, 0.55);
+    opacity: 0.86;
+  }
+  98% {
+    text-shadow:
+      0 0 2px rgba(251, 191, 36, 0.15),
+      0 0 10px rgba(127, 29, 29, 0.4);
+    opacity: 0.78;
   }
 }

@@ -3,7 +3,6 @@ import { ThemeProvider } from 'next-themes';
 import { Inter } from 'next/font/google';
 
 import { QueryProvider } from '@/components/providers/query';
-import Header from '@/components/shared/header';
 import { Toaster } from '@/components/ui/sonner';
 
 import './globals.css';
@@ -25,13 +24,12 @@ export default function RootLayout({
       <body className={inter.className}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
-          enableSystem
+          defaultTheme="dark"
+          enableSystem={false}
           disableTransitionOnChange
         >
           <QueryProvider>
             <div className="flex min-h-screen flex-col items-center justify-items-center space-y-4 p-8">
-              <Header />
               {children}
             </div>
           </QueryProvider>
