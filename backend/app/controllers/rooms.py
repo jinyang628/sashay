@@ -27,9 +27,8 @@ class RoomsController:
         async def create(input: CreateRoomRequest) -> JSONResponse:
             try:
                 log.info("Creating room for game %s", input.game_id)
-                # await self.service.create_room(
-                #      game_id=input.game_id
-                # )
+                await self.service.create_room(game_id=input.game_id)
+                log.info("Room created successfully for game %s", input.game_id)
                 return JSONResponse(
                     content={
                         "message": "Room created successfully",
@@ -54,6 +53,7 @@ class RoomsController:
                 # await self.service.join_room(
                 #      game_id=input.game_id
                 # )
+                log.info("Room joined successfully for game %s", input.game_id)
                 return JoinRoomResponse(
                     status_code=httpx.codes.OK,
                     message="Room joined successfully",
