@@ -3,11 +3,33 @@
 import axios from 'axios';
 import { StatusCodes } from 'http-status-codes';
 
-import { CreateRoomRequest } from '@/types/room';
+import { createRoomRequestSchema } from '@/types/room';
 
-export async function createRoom(request: CreateRoomRequest): Promise<void> {
+import { Player } from '@/lib/constants';
+import { supabase } from '@/lib/supabase';
+import { getHostPlayer } from '@/lib/utils';
+
+export async function createRoom(game_id: string): Promise<void> {
   try {
+    const { data: authData, error: authError } = await supabase.auth.signInAnonymously();
+
+    if (authError) {
+      console.error('Supabase anonymous login failed:', authError.message);
+      return;
+    }
+    if (!authData?.user) {
+      console.error('Supabase anonymous login failed: No user found');
+      return;
+    }
+    const userId: string = authData.user.id;
+    const hostPlayer: Player = getHostPlayer();
+    const request = createRoomRequestSchema.parse({
+      game_id: game_id,
+      player_one_id: hostPlayer === Player.A ? userId : null,
+      player_two_id: hostPlayer === Player.B ? userId : null,
+    });
     console.log('Creating room:', request);
+
     const response = await axios.post(
       `${process.env.SERVER_BASE_URL}/api/v1/rooms/create`,
       request,

@@ -8,8 +8,6 @@ import { useSetAtom } from 'jotai';
 
 import { Button } from '@/components/ui/button';
 
-import { createRoomRequestSchema } from '@/types/room';
-
 import { getRandomGameId } from '@/lib/utils';
 
 export default function CreateRoomButton() {
@@ -19,10 +17,7 @@ export default function CreateRoomButton() {
   const handleCreateRoom = async () => {
     const gameId = getRandomGameId();
     setGameId(gameId);
-    const createRoomRequest = createRoomRequestSchema.parse({
-      game_id: gameId,
-    });
-    await createRoom(createRoomRequest);
+    await createRoom(gameId);
     router.push(`/room/${gameId}`);
   };
 

@@ -2,6 +2,8 @@ import { z } from 'zod';
 
 export const createRoomRequestSchema = z.object({
   game_id: z.string(),
+  player_one_id: z.string().nullable(),
+  player_two_id: z.string().nullable(),
 });
 
 export type CreateRoomRequest = z.infer<typeof createRoomRequestSchema>;

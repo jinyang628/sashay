@@ -1,6 +1,8 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
+import { Player } from './constants';
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
@@ -12,4 +14,8 @@ export function getRandomGameId() {
     result += chars[Math.floor(Math.random() * chars.length)];
   }
   return result;
+}
+
+export function getHostPlayer(): Player {
+  return Math.random() < 0.5 ? Player.A : Player.B;
 }
