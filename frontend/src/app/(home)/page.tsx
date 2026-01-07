@@ -1,6 +1,5 @@
 import CreateRoomButton from '@/components/home/create-room-button';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import JoinRoomGroup from '@/components/home/join-room-group';
 
 export default function Home() {
   return (
@@ -25,21 +24,7 @@ export default function Home() {
               <label className="text-xs font-medium tracking-[0.18em] text-zinc-500 uppercase">
                 Join an existing room
               </label>
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                <Input
-                  type="text"
-                  placeholder="Enter room code"
-                  className="h-11 bg-zinc-900/80 text-sm text-zinc-100 placeholder:text-zinc-600 sm:text-base"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="lg"
-                  className="border-sashay-amber/80 text-sashay-gold hover:border-sashay-gold h-11 shrink-0 bg-zinc-950/80 text-sm font-semibold hover:bg-amber-900/40"
-                >
-                  Join Room
-                </Button>
-              </div>
+              <JoinRoomGroup />
             </div>
           </div>
         </div>

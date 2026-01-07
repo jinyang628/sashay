@@ -23,7 +23,7 @@ export default function CreateRoomButton() {
     <Button
       type="button"
       size="lg"
-      className="from-sashay-amber to-sashay-rose w-full bg-gradient-to-r via-amber-600 text-base font-semibold text-amber-50 shadow-lg shadow-amber-900/70 transition hover:shadow-amber-800/90 hover:brightness-110"
+      className="from-sashay-amber to-sashay-rose w-full cursor-pointer bg-gradient-to-r via-amber-600 text-base font-semibold text-amber-50 shadow-lg shadow-amber-900/70 transition hover:shadow-amber-800/90 hover:brightness-110"
       onClick={handleCreateRoom}
     >
       Create Room
