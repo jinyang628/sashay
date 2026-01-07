@@ -5,9 +5,10 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { joinRoom } from '@/actions/room/join';
+import { StatusCodes } from 'http-status-codes';
 import { toast } from 'sonner';
 
-import { joinRoomRequestSchema } from '@/types/room';
+import { JoinRoomResponse, joinRoomRequestSchema } from '@/types/room';
 
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -20,8 +21,8 @@ export default function JoinRoomGroup() {
       game_id: gameId,
     });
     try {
-      const response = await joinRoom(joinRoomRequest);
-      if (response.is_successful) {
+      const response: JoinRoomResponse = await joinRoom(joinRoomRequest);
+      if (response.status_code === StatusCodes.OK) {
         console.log(`Room joined successfully: ${gameId}`);
         router.push(`/game/${gameId}`);
       } else {

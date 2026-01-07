@@ -13,7 +13,7 @@ export const joinRoomRequestSchema = z.object({
 export type JoinRoomRequest = z.infer<typeof joinRoomRequestSchema>;
 
 export const joinRoomResponseSchema = z.object({
-  is_successful: z.boolean(),
+  status_code: z.number(),
   message: z.string(),
 });
 
