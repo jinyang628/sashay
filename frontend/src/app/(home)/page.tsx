@@ -1,3 +1,4 @@
+import CreateRoomButton from '@/components/home/create-room-button';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -18,13 +19,7 @@ export default function Home() {
           </div>
 
           <div className="flex flex-col gap-4">
-            <Button
-              type="button"
-              size="lg"
-              className="from-sashay-amber to-sashay-rose w-full bg-gradient-to-r via-amber-600 text-base font-semibold text-amber-50 shadow-lg shadow-amber-900/70 transition hover:shadow-amber-800/90 hover:brightness-110"
-            >
-              Create Room
-            </Button>
+            <CreateRoomButton />
 
             <div className="border-border/70 flex flex-col gap-2 rounded-2xl border bg-zinc-950/70 p-4 shadow-sm backdrop-blur">
               <label className="text-xs font-medium tracking-[0.18em] text-zinc-500 uppercase">
