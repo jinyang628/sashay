@@ -1,9 +1,9 @@
 import StatusText from '@/components/room/status-text';
 
-type RoomPageProps = { params: { gameId: string } };
+type RoomPageProps = { params: Promise<{ gameId: string }> };
 
-export default function RoomPage({ params }: RoomPageProps) {
-  const { gameId } = params;
+export default async function RoomPage({ params }: RoomPageProps) {
+  const { gameId } = await params;
 
   return (
     <main className="flex min-h-[70vh] w-full items-center justify-center">

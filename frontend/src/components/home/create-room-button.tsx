@@ -20,7 +20,7 @@ export default function CreateRoomButton() {
     const gameId = getRandomGameId();
     setGameId(gameId);
     const createRoomRequest = createRoomRequestSchema.parse({
-      gameId: gameId,
+      game_id: gameId,
     });
     await createRoom(createRoomRequest);
     router.push(`/room/${gameId}`);

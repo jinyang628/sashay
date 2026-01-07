@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
 from app.models.game.base import Player
-from app.models.game.piece import Piece
+from app.models.game.engine import Piece
 
 
 class InitializeRequest(BaseModel):

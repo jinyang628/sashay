@@ -10,7 +10,7 @@ from app.services.games import GamesService
 log = logging.getLogger(__name__)
 
 
-class MessagesController:
+class GamesController:
     def __init__(self, service: GamesService):
         self.router = APIRouter()
         self.service = service
