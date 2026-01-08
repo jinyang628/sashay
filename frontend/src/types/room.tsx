@@ -18,6 +18,7 @@ export type JoinRoomRequest = z.infer<typeof joinRoomRequestSchema>;
 export const joinRoomResponseSchema = z.object({
   status_code: z.number(),
   message: z.string(),
+  is_player_one: z.boolean().nullable(),
 });
 
 export type JoinRoomResponse = z.infer<typeof joinRoomResponseSchema>;

@@ -1,4 +1,8 @@
+import httpx
+
+from app.models.api.rooms.join import JoinRoomResponse
 from app.services.database import DatabaseService
+from app.utils.errors import RoomNotFoundError
 
 
 class RoomsService:
@@ -14,5 +18,45 @@ class RoomsService:
             }
         ).execute()
 
-    async def join_room(self, game_id: str, player_id: str) -> None:
-        pass
+    async def join_room(self, game_id: str, player_id: str) -> JoinRoomResponse:
+        client = await DatabaseService().get_client()
+        response = (
+            await client.table("rooms")
+            .select("player_one_id", "player_two_id")
+            .eq("game_id", game_id)
+            .execute()
+        )
+        if (
+            not response.data
+            or not isinstance(response.data, list)
+            or not response.data[0]
+        ):
+            raise RoomNotFoundError("Room not found")
+
+        player_info = response.data[0]
+        player_one_id = (
+            player_info.get("player_one_id") if isinstance(player_info, dict) else None
+        )
+        player_two_id = (
+            player_info.get("player_two_id") if isinstance(player_info, dict) else None
+        )
+        if not player_one_id and not player_two_id:
+            raise Exception("Room is missing host player")
+
+        if player_one_id:
+            await client.table("rooms").update(
+                {"player_two_id": player_id, "status": "active"}
+            ).eq("game_id", game_id).execute()
+            return JoinRoomResponse(
+                status_code=httpx.codes.OK,
+                message="Room joined successfully",
+                is_player_one=None,
+            )
+        await client.table("rooms").update(
+            {"player_one_id": player_id, "status": "active"}
+        ).eq("game_id", game_id).execute()
+        return JoinRoomResponse(
+            status_code=httpx.codes.OK,
+            message="Room joined successfully",
+            is_player_one=None,
+        )

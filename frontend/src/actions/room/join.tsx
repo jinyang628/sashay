@@ -3,11 +3,7 @@
 import axios from 'axios';
 import { StatusCodes } from 'http-status-codes';
 
-import {
-  JoinRoomResponse,
-  joinRoomRequestSchema,
-  joinRoomResponseSchema,
-} from '@/types/room';
+import { JoinRoomResponse, joinRoomRequestSchema, joinRoomResponseSchema } from '@/types/room';
 
 import { supabase } from '@/lib/supabase';
 
@@ -30,12 +26,13 @@ export async function joinRoom(game_id: string): Promise<JoinRoomResponse> {
       `${process.env.SERVER_BASE_URL}/api/v1/rooms/join`,
       request,
     );
-    return joinRoomResponseSchema.parse(response.data);
+    return response.data;
   } catch (error) {
     console.error('Error joining room:', error);
     return joinRoomResponseSchema.parse({
       status_code: StatusCodes.INTERNAL_SERVER_ERROR,
       message: 'Unexpected error occurred while trying to join room. Please try again later.',
+      is_player_one: null,
     });
   }
 }

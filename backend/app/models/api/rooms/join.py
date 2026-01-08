@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import BaseModel
 
 
@@ -9,4 +11,4 @@ class JoinRoomRequest(BaseModel):
 class JoinRoomResponse(BaseModel):
     status_code: int
     message: str
-    is_player_one: bool
+    is_player_one: Optional[bool]
