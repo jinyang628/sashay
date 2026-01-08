@@ -8,7 +8,7 @@ import { joinRoom } from '@/actions/room/join';
 import { StatusCodes } from 'http-status-codes';
 import { toast } from 'sonner';
 
-import { JoinRoomResponse, joinRoomRequestSchema } from '@/types/room';
+import { JoinRoomResponse } from '@/types/room';
 
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -17,11 +17,8 @@ export default function JoinRoomGroup() {
   const [gameId, setGameId] = useState<string>('');
   const router = useRouter();
   const handleJoinRoom = async () => {
-    const joinRoomRequest = joinRoomRequestSchema.parse({
-      game_id: gameId,
-    });
     try {
-      const response: JoinRoomResponse = await joinRoom(joinRoomRequest);
+      const response: JoinRoomResponse = await joinRoom(gameId);
       if (response.status_code === StatusCodes.OK) {
         console.log(`Room joined successfully: ${gameId}`);
         router.push(`/game/${gameId}`);

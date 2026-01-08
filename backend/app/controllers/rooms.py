@@ -59,9 +59,10 @@ class RoomsController:
         async def join(input: JoinRoomRequest) -> JoinRoomResponse:
             try:
                 log.info("Joining room for game %s", input.game_id)
-                # await self.service.join_room(
-                #      game_id=input.game_id
-                # )
+                await self.service.join_room(
+                    game_id=input.game_id,
+                    player_id=input.player_id,
+                )
                 log.info("Room joined successfully for game %s", input.game_id)
                 return JoinRoomResponse(
                     status_code=httpx.codes.OK,

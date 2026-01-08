@@ -14,12 +14,10 @@ export async function createRoom(game_id: string): Promise<void> {
     const { data: authData, error: authError } = await supabase.auth.signInAnonymously();
 
     if (authError) {
-      console.error('Supabase anonymous login failed:', authError.message);
-      return;
+      throw new Error('Supabase anonymous login failed', { cause: authError.message });
     }
     if (!authData?.user) {
-      console.error('Supabase anonymous login failed: No user found');
-      return;
+      throw new Error('Supabase anonymous login failed: No user found');
     }
     const userId: string = authData.user.id;
     const hostPlayer: Player = getHostPlayer();

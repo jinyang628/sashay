@@ -14,5 +14,5 @@ class RoomsService:
             }
         ).execute()
 
-    async def join_room(self, game_id: str) -> None:
+    async def join_room(self, game_id: str, player_id: str) -> None:
         pass
