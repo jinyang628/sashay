@@ -1,6 +1,6 @@
 import Square from '@/components/game/square';
 
-import { COLS, ROWS } from '@/lib/constants';
+import { COLS, ROWS } from '@/lib/game/base';
 
 export default function GameBoard() {
   return Array.from({ length: ROWS }).map((_, row) =>

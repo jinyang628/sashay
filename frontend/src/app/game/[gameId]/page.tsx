@@ -1,6 +1,6 @@
 import GameBoard from '@/components/game/board';
 
-import { COLS, ROWS } from '@/lib/constants';
+import { COLS, ROWS } from '@/lib/game/base';
 
 export default function Home() {
   return (

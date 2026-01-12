@@ -12,5 +12,5 @@ class Position(BaseModel, frozen=True):
 
 
 class Player(StrEnum):
-    A = "A"
-    B = "B"
+    PLAYER_ONE = "player_one"
+    PLAYER_TWO = "player_two"

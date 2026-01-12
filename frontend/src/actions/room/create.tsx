@@ -5,7 +5,7 @@ import { StatusCodes } from 'http-status-codes';
 
 import { createRoomRequestSchema } from '@/types/room';
 
-import { Player } from '@/lib/constants';
+import { Player } from '@/lib/game/base';
 import { getHostPlayer } from '@/lib/utils';
 
 export async function createRoom(game_id: string, userId: string): Promise<void> {

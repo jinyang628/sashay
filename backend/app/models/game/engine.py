@@ -242,13 +242,21 @@ class GameEngine:
         top_row_index = 0
         for col in range(COLS):
             piece = self.game_board.board[top_row_index][col]
-            if isinstance(piece, Dancer) and piece.is_spy and piece.player == Player.A:
-                return Player.A
+            if (
+                isinstance(piece, Dancer)
+                and piece.is_spy
+                and piece.player == Player.PLAYER_ONE
+            ):
+                return Player.PLAYER_ONE
 
         bottom_row_index = ROWS - 1
         for col in range(COLS):
             piece = self.game_board.board[bottom_row_index][col]
-            if isinstance(piece, Dancer) and piece.is_spy and piece.player == Player.B:
-                return Player.B
+            if (
+                isinstance(piece, Dancer)
+                and piece.is_spy
+                and piece.player == Player.PLAYER_TWO
+            ):
+                return Player.PLAYER_TWO
 
         return None
