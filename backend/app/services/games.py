@@ -1,6 +1,5 @@
 import logging
 
-
 from app.models.game.engine import Dancer, Master
 from app.services.database import DatabaseService
 
