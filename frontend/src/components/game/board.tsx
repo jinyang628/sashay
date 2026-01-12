@@ -25,7 +25,7 @@ export default function Board({
       {ROWS - row}
     </span>
   );
-  
+
   return (
     <div className="flex flex-1 flex-col items-center justify-center">
       <div
@@ -55,7 +55,6 @@ export default function Board({
                   'hover:ring-primary/50 hover:z-10 hover:ring-2',
                 )}
               >
-                {/* Coordinate Label */}
                 {coordinateLabel(row, col)}
 
                 {piece && (
