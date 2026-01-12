@@ -8,6 +8,7 @@ import { joinRoom } from '@/actions/room/join';
 import { gameIdAtom, playerAtom } from '@/state/game';
 import { StatusCodes } from 'http-status-codes';
 import { useSetAtom } from 'jotai';
+import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { JoinRoomResponse } from '@/types/room';
@@ -20,11 +21,13 @@ import { Input } from '../ui/input';
 
 export default function JoinRoomGroup() {
   const [gameId, setGameId] = useState<string>('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const router = useRouter();
   const setPlayerAtom = useSetAtom(playerAtom);
   const setGameIdAtom = useSetAtom(gameIdAtom);
   const handleJoinRoom = async () => {
+    setIsLoading(true);
     try {
       const response: JoinRoomResponse = await joinRoom(gameId, await getUserIdOfAnonymousSignIn());
       if (response.status_code === StatusCodes.OK) {
@@ -40,6 +43,8 @@ export default function JoinRoomGroup() {
     } catch (error) {
       toast.error('Unexpected error while trying to join room. Please try again later.');
       console.error(error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -56,10 +61,11 @@ export default function JoinRoomGroup() {
         type="button"
         variant="outline"
         size="lg"
-        className="border-sashay-amber/80 text-sashay-gold hover:border-sashay-gold h-11 shrink-0 cursor-pointer bg-zinc-950/80 text-sm font-semibold hover:bg-amber-900/40"
+        disabled={isLoading}
+        className="border-sashay-amber/80 text-sashay-gold hover:border-sashay-gold h-11 shrink-0 cursor-pointer bg-zinc-950/80 text-sm font-semibold hover:bg-amber-900/40 disabled:cursor-not-allowed disabled:opacity-70"
         onClick={handleJoinRoom}
       >
-        Join Room
+        {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Join Room'}
       </Button>
     </div>
   );
