@@ -22,3 +22,7 @@ export const joinRoomResponseSchema = z.object({
 });
 
 export type JoinRoomResponse = z.infer<typeof joinRoomResponseSchema>;
+
+export const roomStatusEnum = z.enum(['waiting', 'active', 'finished']);
+
+export type RoomStatus = z.infer<typeof roomStatusEnum>;

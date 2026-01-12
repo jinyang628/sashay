@@ -1,9 +1,57 @@
+'use client';
+
+import { useRouter } from 'next/navigation';
+
+import { use, useEffect } from 'react';
+
 import StatusText from '@/components/room/status-text';
+
+import { roomStatusEnum } from '@/types/room';
+
+import { supabase } from '@/lib/supabase';
 
 type RoomPageProps = { params: Promise<{ gameId: string }> };
 
-export default async function RoomPage({ params }: RoomPageProps) {
-  const { gameId } = await params;
+export default function RoomPage({ params }: RoomPageProps) {
+  const router = useRouter();
+  const { gameId } = use(params);
+  useEffect(() => {
+    if (!gameId) return;
+
+    const channel = supabase
+      .channel(`room-${gameId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'rooms',
+          filter: `game_id=eq.${gameId}`,
+        },
+        (payload) => {
+          console.log('Change received!', payload);
+          const updatedRoom = payload.new;
+          if (
+            updatedRoom.status === roomStatusEnum.enum.active &&
+            updatedRoom.player_two_id !== null &&
+            updatedRoom.player_one_id !== null
+          ) {
+            setTimeout(() => {
+              router.push(`/game/${gameId}`);
+            }, 1000);
+          }
+        },
+      )
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('Successfully listening for room updates');
+        }
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [gameId, router]);
 
   return (
     <main className="flex min-h-[70vh] w-full items-center justify-center">

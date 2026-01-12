@@ -10,6 +10,8 @@ import { toast } from 'sonner';
 
 import { JoinRoomResponse } from '@/types/room';
 
+import { getUserIdOfAnonymousSignIn } from '@/lib/supabase';
+
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 
@@ -18,7 +20,7 @@ export default function JoinRoomGroup() {
   const router = useRouter();
   const handleJoinRoom = async () => {
     try {
-      const response: JoinRoomResponse = await joinRoom(gameId);
+      const response: JoinRoomResponse = await joinRoom(gameId, await getUserIdOfAnonymousSignIn());
       if (response.status_code === StatusCodes.OK) {
         console.log(`Room joined successfully: ${gameId}`);
         router.push(`/game/${gameId}`);

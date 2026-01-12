@@ -8,6 +8,7 @@ import { useSetAtom } from 'jotai';
 
 import { Button } from '@/components/ui/button';
 
+import { getUserIdOfAnonymousSignIn } from '@/lib/supabase';
 import { getRandomGameId } from '@/lib/utils';
 
 export default function CreateRoomButton() {
@@ -17,7 +18,7 @@ export default function CreateRoomButton() {
   const handleCreateRoom = async () => {
     const gameId = getRandomGameId();
     setGameId(gameId);
-    await createRoom(gameId);
+    await createRoom(gameId, await getUserIdOfAnonymousSignIn());
     router.push(`/room/${gameId}`);
   };
 

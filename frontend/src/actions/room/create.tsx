@@ -6,20 +6,10 @@ import { StatusCodes } from 'http-status-codes';
 import { createRoomRequestSchema } from '@/types/room';
 
 import { Player } from '@/lib/constants';
-import { supabase } from '@/lib/supabase';
 import { getHostPlayer } from '@/lib/utils';
 
-export async function createRoom(game_id: string): Promise<void> {
+export async function createRoom(game_id: string, userId: string): Promise<void> {
   try {
-    const { data: authData, error: authError } = await supabase.auth.signInAnonymously();
-
-    if (authError) {
-      throw new Error('Supabase anonymous login failed', { cause: authError.message });
-    }
-    if (!authData?.user) {
-      throw new Error('Supabase anonymous login failed: No user found');
-    }
-    const userId: string = authData.user.id;
     const hostPlayer: Player = getHostPlayer();
     const request = createRoomRequestSchema.parse({
       game_id: game_id,

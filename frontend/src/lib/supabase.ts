@@ -11,3 +11,16 @@ if (!supabaseAnonKey) {
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+export async function getUserIdOfAnonymousSignIn(): Promise<string> {
+  const { data: authData, error: authError } = await supabase.auth.signInAnonymously();
+
+  if (authError) {
+    throw new Error('Supabase anonymous login failed', { cause: authError.message });
+  }
+  if (!authData?.user) {
+    throw new Error('Supabase anonymous login failed: No user found');
+  }
+  const userId: string = authData.user.id;
+  return userId;
+}

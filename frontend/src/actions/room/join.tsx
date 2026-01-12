@@ -5,19 +5,8 @@ import { StatusCodes } from 'http-status-codes';
 
 import { JoinRoomResponse, joinRoomRequestSchema, joinRoomResponseSchema } from '@/types/room';
 
-import { supabase } from '@/lib/supabase';
-
-export async function joinRoom(game_id: string): Promise<JoinRoomResponse> {
+export async function joinRoom(game_id: string, userId: string): Promise<JoinRoomResponse> {
   try {
-    const { data: authData, error: authError } = await supabase.auth.signInAnonymously();
-
-    if (authError) {
-      throw new Error('Supabase anonymous login failed', { cause: authError.message });
-    }
-    if (!authData?.user) {
-      throw new Error('Supabase anonymous login failed: No user found');
-    }
-    const userId: string = authData.user.id;
     const request = joinRoomRequestSchema.parse({
       game_id: game_id,
       player_id: userId,
