@@ -32,7 +32,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
           console.log('Change received!', payload);
           const updatedRoom = payload.new;
           if (
-            updatedRoom.status === roomStatusEnum.enum.active &&
+            updatedRoom.status === roomStatusEnum.enum.planning &&
             updatedRoom.player_two_id !== null &&
             updatedRoom.player_one_id !== null
           ) {

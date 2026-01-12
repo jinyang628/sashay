@@ -17,5 +17,5 @@ export function getRandomGameId() {
 }
 
 export function getHostPlayer(): Player {
-  return Math.random() < 0.5 ? Player.A : Player.B;
+  return Math.random() < 0.5 ? Player.PLAYER_ONE : Player.PLAYER_TWO;
 }

@@ -6,15 +6,17 @@ import { StatusCodes } from 'http-status-codes';
 import { createRoomRequestSchema } from '@/types/room';
 
 import { Player } from '@/lib/game/base';
-import { getHostPlayer } from '@/lib/utils';
 
-export async function createRoom(game_id: string, userId: string): Promise<void> {
+export async function createRoom(
+  game_id: string,
+  userId: string,
+  hostPlayer: Player,
+): Promise<void> {
   try {
-    const hostPlayer: Player = getHostPlayer();
     const request = createRoomRequestSchema.parse({
       game_id: game_id,
-      player_one_id: hostPlayer === Player.A ? userId : null,
-      player_two_id: hostPlayer === Player.B ? userId : null,
+      player_one_id: hostPlayer === Player.PLAYER_ONE ? userId : null,
+      player_two_id: hostPlayer === Player.PLAYER_TWO ? userId : null,
     });
     console.log('Creating room:', request);
 

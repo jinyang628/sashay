@@ -5,11 +5,14 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { joinRoom } from '@/actions/room/join';
+import { playerAtom } from '@/state/game';
 import { StatusCodes } from 'http-status-codes';
+import { useSetAtom } from 'jotai';
 import { toast } from 'sonner';
 
 import { JoinRoomResponse } from '@/types/room';
 
+import { Player } from '@/lib/game/base';
 import { getUserIdOfAnonymousSignIn } from '@/lib/supabase';
 
 import { Button } from '../ui/button';
@@ -18,11 +21,13 @@ import { Input } from '../ui/input';
 export default function JoinRoomGroup() {
   const [gameId, setGameId] = useState<string>('');
   const router = useRouter();
+  const setPlayer = useSetAtom(playerAtom);
   const handleJoinRoom = async () => {
     try {
       const response: JoinRoomResponse = await joinRoom(gameId, await getUserIdOfAnonymousSignIn());
       if (response.status_code === StatusCodes.OK) {
         console.log(`Room joined successfully: ${gameId}`);
+        setPlayer(response.is_player_one ? Player.PLAYER_ONE : Player.PLAYER_TWO);
         router.push(`/game/${gameId}`);
       } else {
         toast.error(response.message);

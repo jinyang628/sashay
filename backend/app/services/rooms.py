@@ -45,7 +45,7 @@ class RoomsService:
 
         if player_one_id:
             await client.table("rooms").update(
-                {"player_two_id": player_id, "status": "active"}
+                {"player_two_id": player_id, "status": "planning"}
             ).eq("game_id", game_id).execute()
             return JoinRoomResponse(
                 status_code=httpx.codes.OK,
@@ -53,7 +53,7 @@ class RoomsService:
                 is_player_one=None,
             )
         await client.table("rooms").update(
-            {"player_one_id": player_id, "status": "active"}
+            {"player_one_id": player_id, "status": "planning"}
         ).eq("game_id", game_id).execute()
         return JoinRoomResponse(
             status_code=httpx.codes.OK,

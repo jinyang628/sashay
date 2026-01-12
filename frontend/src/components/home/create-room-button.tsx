@@ -3,22 +3,26 @@
 import { useRouter } from 'next/navigation';
 
 import { createRoom } from '@/actions/room/create';
-import { gameIdAtom } from '@/state/game';
+import { gameIdAtom, playerAtom } from '@/state/game';
 import { useSetAtom } from 'jotai';
 
 import { Button } from '@/components/ui/button';
 
+import { Player } from '@/lib/game/base';
 import { getUserIdOfAnonymousSignIn } from '@/lib/supabase';
-import { getRandomGameId } from '@/lib/utils';
+import { getHostPlayer, getRandomGameId } from '@/lib/utils';
 
 export default function CreateRoomButton() {
   const router = useRouter();
   const setGameId = useSetAtom(gameIdAtom);
+  const setPlayer = useSetAtom(playerAtom);
 
   const handleCreateRoom = async () => {
-    const gameId = getRandomGameId();
+    const gameId: string = getRandomGameId();
     setGameId(gameId);
-    await createRoom(gameId, await getUserIdOfAnonymousSignIn());
+    const hostPlayer: Player = getHostPlayer();
+    setPlayer(hostPlayer);
+    await createRoom(gameId, await getUserIdOfAnonymousSignIn(), hostPlayer);
     router.push(`/lobby/${gameId}`);
   };
 
