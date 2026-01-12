@@ -27,6 +27,7 @@ export default function CreateRoomButton() {
       const gameId: string = getRandomGameId();
       setGameId(gameId);
       const hostPlayer: Player = getHostPlayer();
+      console.log(`You are ${hostPlayer}`);
       setPlayer(hostPlayer);
       await createRoom(gameId, await getUserIdOfAnonymousSignIn(), hostPlayer);
       router.push(`/lobby/${gameId}`);

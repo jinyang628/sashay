@@ -36,6 +36,7 @@ class GamesService:
                 f"'pieces' key is not a list in existing game data for game {game_id}"
             )
         existing_pieces += [piece.model_dump() for piece in pieces]
+        log.debug("Updated pieces %s", existing_pieces)
         await client.table("games").update({"pieces": existing_pieces}).eq(
             "game_id", game_id
         ).execute()

@@ -33,6 +33,7 @@ export default function JoinRoomGroup() {
       if (response.status_code === StatusCodes.OK) {
         console.log(`Room joined successfully: ${gameId}`);
         setGameIdAtom(gameId);
+        console.log(`You are ${response.is_player_one ? 'player one' : 'player two'}`);
         setPlayerAtom(
           response.is_player_one ? playerEnum.enum.player_one : playerEnum.enum.player_two,
         );
