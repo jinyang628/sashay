@@ -22,12 +22,16 @@ class GamesController:
         @router.post(
             "/initialize",
         )
-        async def chat(input: InitializeRequest) -> JSONResponse:
+        async def initialize(input: InitializeRequest) -> JSONResponse:
             try:
-                log.info("Initializing pieces for player %s", input.player)
-                # await self.service.initialize(
-                #     player=input.player, pieces=input.pieces, game_id=input.game_id
-                # )
+                log.info(
+                    "Initializing pieces for player %s in game %s",
+                    input.pieces[0].player,
+                    input.game_id,
+                )
+                await self.service.initialize(
+                    game_id=input.game_id, pieces=input.pieces
+                )
                 return JSONResponse(
                     content={
                         "message": "Pieces initialized successfully",
@@ -36,8 +40,10 @@ class GamesController:
                     status_code=httpx.codes.OK,
                 )
             except Exception as e:
-                log.exception(
-                    "Error initializing pieces for player %s: %s", input.player, e
+                log.info(
+                    "Error initializing pieces for player %s in game %s",
+                    input.pieces[0].player,
+                    input.game_id,
                 )
                 return JSONResponse(
                     content={"message": "Error initializing pieces"},

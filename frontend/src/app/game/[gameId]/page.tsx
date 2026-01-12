@@ -2,26 +2,37 @@
 
 import React, { useMemo, useState } from 'react';
 
-import { playerAtom } from '@/state/game';
+import { initializePieces } from '@/actions/game/initialize';
+import { gameIdAtom, playerAtom } from '@/state/game';
 import { useAtomValue } from 'jotai';
 
 import Board from '@/components/game/board';
 import Sidebar from '@/components/game/side-bar';
 
-import { PIECE_LIMITS, PieceType, PlacementMode, Player, Position } from '@/lib/game/base';
-import { Dancer, GameBoard, Master, Piece } from '@/lib/game/engine';
+import {
+  PIECE_LIMITS,
+  PieceType,
+  PlacementMode,
+  Player,
+  Position,
+  pieceTypeEnum,
+  playerEnum,
+} from '@/lib/game/base';
+import { Dancer, GameBoard, Master, Piece as PieceClass } from '@/lib/game/engine';
 
 export default function PlanningInterface() {
   const player: Player = useAtomValue(playerAtom);
-  const PLAYER_SIDE_ROWS = player === Player.PLAYER_ONE ? [0, 1, 2, 3] : [4, 5, 6, 7];
-  const [placedPieces, setPlacedPieces] = useState<Piece[]>([]);
+  const gameId: string = useAtomValue(gameIdAtom);
+  const PLAYER_SIDE_ROWS = player === playerEnum.enum.player_one ? [0, 1, 2, 3] : [4, 5, 6, 7];
+  const [placedPieces, setPlacedPieces] = useState<PieceClass[]>([]);
   const [selectedMode, setSelectedMode] = useState<PlacementMode>(PlacementMode.DANCER);
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const pieceCounts = useMemo(() => {
     return {
-      DANCER: placedPieces.filter((p) => p.pieceType === PieceType.DANCER && !p.isSpy).length,
-      MASTER: placedPieces.filter((p) => p.pieceType === PieceType.MASTER).length,
+      DANCER: placedPieces.filter((p) => p.pieceType === pieceTypeEnum.enum.dancer && !p.isSpy)
+        .length,
+      MASTER: placedPieces.filter((p) => p.pieceType === pieceTypeEnum.enum.master).length,
       SPY: placedPieces.filter((p) => p.isSpy).length,
     };
   }, [placedPieces]);
@@ -31,8 +42,8 @@ export default function PlanningInterface() {
     type: PieceType,
     pos: Position,
     isSpy: boolean,
-  ): Piece => {
-    return type === PieceType.DANCER
+  ): PieceClass => {
+    return type === pieceTypeEnum.enum.dancer
       ? new Dancer(player, pos, isSpy)
       : new Master(player, pos, isSpy);
   };
@@ -64,14 +75,15 @@ export default function PlanningInterface() {
     }
 
     // Create the piece on the board
-    const type = selectedMode === PlacementMode.MASTER ? PieceType.MASTER : PieceType.DANCER;
+    const type =
+      selectedMode === PlacementMode.MASTER ? pieceTypeEnum.enum.master : pieceTypeEnum.enum.dancer;
     const isSpy = selectedMode === PlacementMode.SPY;
 
     const newPiece = createPieceInstance(player, type, { row, col }, isSpy);
     setPlacedPieces((prev) => [...prev, newPiece]);
   };
 
-  const onLockPlacementClick = () => {
+  const onLockPlacementClick = async () => {
     if (
       pieceCounts.DANCER !== PIECE_LIMITS.DANCER ||
       pieceCounts.MASTER !== PIECE_LIMITS.MASTER ||
@@ -91,6 +103,16 @@ export default function PlanningInterface() {
       return;
     }
 
+    await initializePieces(
+      gameId,
+      placedPieces.map((piece) => ({
+        id: piece.id,
+        player: piece.player,
+        piece_type: piece.pieceType,
+        position: piece.position,
+        is_spy: piece.isSpy,
+      })),
+    );
     alert('Setup Validated! Pieces locked in.');
   };
 

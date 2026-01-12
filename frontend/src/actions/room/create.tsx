@@ -5,7 +5,7 @@ import { StatusCodes } from 'http-status-codes';
 
 import { createRoomRequestSchema } from '@/types/room';
 
-import { Player } from '@/lib/game/base';
+import { Player, playerEnum } from '@/lib/game/base';
 
 export async function createRoom(
   game_id: string,
@@ -15,8 +15,8 @@ export async function createRoom(
   try {
     const request = createRoomRequestSchema.parse({
       game_id: game_id,
-      player_one_id: hostPlayer === Player.PLAYER_ONE ? userId : null,
-      player_two_id: hostPlayer === Player.PLAYER_TWO ? userId : null,
+      player_one_id: hostPlayer === playerEnum.enum.player_one ? userId : null,
+      player_two_id: hostPlayer === playerEnum.enum.player_two ? userId : null,
     });
     console.log('Creating room:', request);
 

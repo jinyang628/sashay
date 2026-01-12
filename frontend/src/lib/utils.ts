@@ -1,7 +1,7 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
-import { Player } from './game/base';
+import { Player, playerEnum } from './game/base';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -17,5 +17,5 @@ export function getRandomGameId() {
 }
 
 export function getHostPlayer(): Player {
-  return Math.random() < 0.5 ? Player.PLAYER_ONE : Player.PLAYER_TWO;
+  return Math.random() < 0.5 ? playerEnum.enum.player_one : playerEnum.enum.player_two;
 }

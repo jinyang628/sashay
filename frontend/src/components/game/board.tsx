@@ -4,7 +4,7 @@ import { HandFistIcon } from '@/components/icons/lucide-hand-fist';
 import { HighHeelIcon } from '@/components/icons/lucide-lab-high-heel';
 import { VenetianMaskIcon } from '@/components/icons/lucide-venetian-mask';
 
-import { COLS, PieceType, ROWS } from '@/lib/game/base';
+import { COLS, ROWS, pieceTypeEnum } from '@/lib/game/base';
 import { Piece } from '@/lib/game/engine';
 import { cn } from '@/lib/utils';
 
@@ -63,14 +63,14 @@ export default function Board({
                       'flex h-14 w-14 scale-100 items-center justify-center rounded-xl shadow-md transition-all group-hover:scale-110',
                       piece.isSpy
                         ? 'bg-red-600 text-white'
-                        : piece.pieceType === PieceType.MASTER
+                        : piece.pieceType === pieceTypeEnum.enum.master
                           ? 'bg-slate-800 text-white'
                           : 'border-2 border-slate-800 bg-white text-slate-800',
                     )}
                   >
                     {piece.isSpy ? (
                       <VenetianMaskIcon className="h-8 w-8" />
-                    ) : piece.pieceType === PieceType.MASTER ? (
+                    ) : piece.pieceType === pieceTypeEnum.enum.master ? (
                       <HandFistIcon className="h-8 w-8" />
                     ) : (
                       <HighHeelIcon className="h-8 w-8" />

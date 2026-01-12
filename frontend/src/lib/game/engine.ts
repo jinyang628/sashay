@@ -1,4 +1,4 @@
-import { COLS, PieceType, Player, Position, ROWS } from './base';
+import { COLS, PieceType, Player, Position, ROWS, pieceTypeEnum, playerEnum } from './base';
 
 export class GameBoard {
   public board: (Piece | null)[][];
@@ -18,7 +18,6 @@ export class GameBoard {
 export abstract class Piece {
   public id: string = crypto.randomUUID();
   public abstract pieceType: PieceType;
-  public abstract name: PieceType;
 
   constructor(
     public player: Player,
@@ -35,8 +34,7 @@ export abstract class Piece {
 }
 
 export class Dancer extends Piece {
-  pieceType = PieceType.DANCER;
-  name = PieceType.DANCER;
+  pieceType = pieceTypeEnum.enum.dancer;
 
   getPossibleNewPositions(gameBoard: GameBoard): Position[] {
     const possibleMoves: Position[] = [];
@@ -83,8 +81,7 @@ export class Dancer extends Piece {
 }
 
 export class Master extends Piece {
-  pieceType = PieceType.MASTER;
-  name = PieceType.MASTER;
+  pieceType = pieceTypeEnum.enum.master;
 
   getPossibleNewPositions(gameBoard: GameBoard): Position[] {
     const possibleMoves: Position[] = [];
@@ -197,8 +194,8 @@ export class GameEngine {
     // Player A wins if Spy Dancer reaches top row (0)
     for (let col = 0; col < COLS; col++) {
       const piece = this.gameBoard.board[0][col];
-      if (piece instanceof Dancer && piece.isSpy && piece.player === Player.PLAYER_ONE) {
-        return Player.PLAYER_ONE;
+      if (piece instanceof Dancer && piece.isSpy && piece.player === playerEnum.enum.player_one) {
+        return playerEnum.enum.player_one;
       }
     }
 
@@ -206,8 +203,8 @@ export class GameEngine {
     const bottomRow = ROWS - 1;
     for (let col = 0; col < COLS; col++) {
       const piece = this.gameBoard.board[bottomRow][col];
-      if (piece instanceof Dancer && piece.isSpy && piece.player === Player.PLAYER_TWO) {
-        return Player.PLAYER_TWO;
+      if (piece instanceof Dancer && piece.isSpy && piece.player === playerEnum.enum.player_two) {
+        return playerEnum.enum.player_two;
       }
     }
 

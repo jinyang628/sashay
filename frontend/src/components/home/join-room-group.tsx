@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 
 import { JoinRoomResponse } from '@/types/room';
 
-import { Player } from '@/lib/game/base';
+import { playerEnum } from '@/lib/game/base';
 import { getUserIdOfAnonymousSignIn } from '@/lib/supabase';
 
 import { Button } from '../ui/button';
@@ -27,7 +27,7 @@ export default function JoinRoomGroup() {
       const response: JoinRoomResponse = await joinRoom(gameId, await getUserIdOfAnonymousSignIn());
       if (response.status_code === StatusCodes.OK) {
         console.log(`Room joined successfully: ${gameId}`);
-        setPlayer(response.is_player_one ? Player.PLAYER_ONE : Player.PLAYER_TWO);
+        setPlayer(response.is_player_one ? playerEnum.enum.player_one : playerEnum.enum.player_two);
         router.push(`/game/${gameId}`);
       } else {
         toast.error(response.message);
