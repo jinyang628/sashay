@@ -8,6 +8,7 @@ import { initializePieces } from '@/actions/game/initialize';
 import { getPlayerNumber } from '@/actions/room/get-player-number';
 import { gameIdAtom } from '@/state/game';
 import { useAtomValue } from 'jotai';
+import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import Board from '@/components/game/board';
@@ -25,7 +26,19 @@ import {
 import { Dancer, GameBoard, Master, Piece as PieceClass } from '@/lib/game/engine';
 import { getCurrentUserId } from '@/lib/supabase';
 
+const createPieceInstance = (
+  player: Player,
+  type: PieceType,
+  pos: Position,
+  isSpy: boolean,
+): PieceClass => {
+  return type === pieceTypeEnum.enum.dancer
+    ? new Dancer(player, pos, isSpy)
+    : new Master(player, pos, isSpy);
+};
+
 export default function PlanningInterface() {
+  const [isLoading, setIsLoading] = useState(true);
   const [player, setPlayer] = useState<Player | null>(null);
   const gameId = useAtomValue(gameIdAtom);
   const PLAYER_SIDE_ROWS = player === playerEnum.enum.player_one ? [0, 1, 2, 3] : [4, 5, 6, 7];
@@ -35,16 +48,23 @@ export default function PlanningInterface() {
 
   useEffect(() => {
     const fetchPlayerNumber = async () => {
-      const response = await getPlayerNumber(gameId, await getCurrentUserId());
-      if (response.is_player_one === true) {
-        console.log('You are player one');
-        setPlayer(playerEnum.enum.player_one);
-      } else if (response.is_player_one === false) {
-        console.log('You are player two');
-        setPlayer(playerEnum.enum.player_two);
-      } else {
-        toast.error('You are not a player in this game');
-        router.push('/');
+      try {
+        const response = await getPlayerNumber(gameId, await getCurrentUserId());
+        if (response.is_player_one === true) {
+          console.log('You are player one');
+          setPlayer(playerEnum.enum.player_one);
+        } else if (response.is_player_one === false) {
+          console.log('You are player two');
+          setPlayer(playerEnum.enum.player_two);
+        } else {
+          toast.error('You are not a player in this game');
+          router.push('/');
+        }
+      } catch (error) {
+        console.error('Error getting player number:', error);
+        toast.error('Unexpected error while trying to get player number. Please try again later.');
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchPlayerNumber();
@@ -58,17 +78,6 @@ export default function PlanningInterface() {
       SPY: placedPieces.filter((p) => p.isSpy).length,
     };
   }, [placedPieces]);
-
-  const createPieceInstance = (
-    player: Player,
-    type: PieceType,
-    pos: Position,
-    isSpy: boolean,
-  ): PieceClass => {
-    return type === pieceTypeEnum.enum.dancer
-      ? new Dancer(player, pos, isSpy)
-      : new Master(player, pos, isSpy);
-  };
 
   const handleSquareClick = (row: number, col: number) => {
     setValidationError(null);
@@ -141,6 +150,14 @@ export default function PlanningInterface() {
       return false;
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <Loader2 className="h-10 w-10 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto flex h-[90vh] max-w-6xl flex-row gap-8 p-8">
