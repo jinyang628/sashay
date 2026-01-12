@@ -10,9 +10,9 @@ import { roomStatusEnum } from '@/types/room';
 
 import { supabase } from '@/lib/supabase';
 
-type RoomPageProps = { params: Promise<{ gameId: string }> };
+type LobbyPageProps = { params: Promise<{ gameId: string }> };
 
-export default function RoomPage({ params }: RoomPageProps) {
+export default function LobbyPage({ params }: LobbyPageProps) {
   const router = useRouter();
   const { gameId } = use(params);
   useEffect(() => {

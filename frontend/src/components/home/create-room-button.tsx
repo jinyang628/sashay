@@ -19,7 +19,7 @@ export default function CreateRoomButton() {
     const gameId = getRandomGameId();
     setGameId(gameId);
     await createRoom(gameId, await getUserIdOfAnonymousSignIn());
-    router.push(`/room/${gameId}`);
+    router.push(`/lobby/${gameId}`);
   };
 
   return (
