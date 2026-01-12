@@ -1,5 +1,6 @@
 import logging
 
+
 from app.models.game.engine import Dancer, Master
 from app.services.database import DatabaseService
 
@@ -16,9 +17,7 @@ class GamesService:
             .execute()
         )
         if not response.data:
-            log.info(
-                "No existing pieces stored for game %s, inserting new pieces", game_id
-            )
+            log.info("No existing pieces stored for game %s", game_id)
             await client.table("games").insert(
                 {
                     "game_id": game_id,
@@ -27,9 +26,30 @@ class GamesService:
             ).execute()
         else:
             log.info("Found existing pieces for game %s", game_id)
-            # TODO: Handle case where pieces already exist (update or merge?)
+            if (
+                not isinstance(response.data[0], dict)
+                or "pieces" not in response.data[0]
+            ):
+                raise Exception(
+                    f"No 'pieces' key found in existing game data for game {game_id}"
+                )
+            existing_pieces = response.data[0]["pieces"]
+            if not isinstance(existing_pieces, list):
+                raise Exception(
+                    f"'pieces' key is not a list in existing game data for game {game_id}"
+                )
+            existing_pieces += [piece.model_dump() for piece in pieces]
+            await client.table("games").update({"pieces": existing_pieces}).eq(
+                "game_id", game_id
+            ).execute()
 
-        # print(response.data[0])
-        # if len(response.data) == 0:
-        #     print("Game not found")
-        #     return
+        players_seen = set()
+        for piece in existing_pieces:
+            if isinstance(piece, dict):
+                players_seen.add(piece.get("player", None))
+            else:
+                raise Exception(f"Piece in game {game_id} is not a dict: {piece!r}")
+        if len(players_seen) == 2:
+            await client.table("rooms").update({"status": "active"}).eq(
+                "game_id", game_id
+            ).execute()
