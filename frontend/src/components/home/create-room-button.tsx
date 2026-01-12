@@ -5,20 +5,19 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { createRoom } from '@/actions/room/create';
-import { gameIdAtom, playerAtom } from '@/state/game';
+import { gameIdAtom } from '@/state/game';
 import { useSetAtom } from 'jotai';
 import { Loader2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 
 import { Player } from '@/lib/game/base';
-import { getUserIdOfAnonymousSignIn } from '@/lib/supabase';
+import { getCurrentUserId } from '@/lib/supabase';
 import { getHostPlayer, getRandomGameId } from '@/lib/utils';
 
 export default function CreateRoomButton() {
   const router = useRouter();
   const setGameId = useSetAtom(gameIdAtom);
-  const setPlayer = useSetAtom(playerAtom);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleCreateRoom = async () => {
@@ -27,9 +26,7 @@ export default function CreateRoomButton() {
       const gameId: string = getRandomGameId();
       setGameId(gameId);
       const hostPlayer: Player = getHostPlayer();
-      console.log(`You are ${hostPlayer}`);
-      setPlayer(hostPlayer);
-      await createRoom(gameId, await getUserIdOfAnonymousSignIn(), hostPlayer);
+      await createRoom(gameId, await getCurrentUserId(), hostPlayer);
       router.push(`/lobby/${gameId}`);
     } finally {
       setIsLoading(false);

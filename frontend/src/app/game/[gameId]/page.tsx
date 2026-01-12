@@ -1,10 +1,14 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import router from 'next/router';
+
+import React, { useEffect, useMemo, useState } from 'react';
 
 import { initializePieces } from '@/actions/game/initialize';
-import { gameIdAtom, playerAtom } from '@/state/game';
+import { getPlayerNumber } from '@/actions/room/get-player-number';
+import { gameIdAtom } from '@/state/game';
 import { useAtomValue } from 'jotai';
+import { toast } from 'sonner';
 
 import Board from '@/components/game/board';
 import Sidebar from '@/components/game/side-bar';
@@ -19,14 +23,32 @@ import {
   playerEnum,
 } from '@/lib/game/base';
 import { Dancer, GameBoard, Master, Piece as PieceClass } from '@/lib/game/engine';
+import { getCurrentUserId } from '@/lib/supabase';
 
 export default function PlanningInterface() {
-  const player: Player = useAtomValue(playerAtom);
-  const gameId: string = useAtomValue(gameIdAtom);
+  const [player, setPlayer] = useState<Player | null>(null);
+  const gameId = useAtomValue(gameIdAtom);
   const PLAYER_SIDE_ROWS = player === playerEnum.enum.player_one ? [0, 1, 2, 3] : [4, 5, 6, 7];
   const [placedPieces, setPlacedPieces] = useState<PieceClass[]>([]);
   const [selectedMode, setSelectedMode] = useState<PlacementMode>(PlacementMode.DANCER);
   const [validationError, setValidationError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchPlayerNumber = async () => {
+      const response = await getPlayerNumber(gameId, await getCurrentUserId());
+      if (response.is_player_one === true) {
+        console.log('You are player one');
+        setPlayer(playerEnum.enum.player_one);
+      } else if (response.is_player_one === false) {
+        console.log('You are player two');
+        setPlayer(playerEnum.enum.player_two);
+      } else {
+        toast.error('You are not a player in this game');
+        router.push('/');
+      }
+    };
+    fetchPlayerNumber();
+  }, []);
 
   const pieceCounts = useMemo(() => {
     return {

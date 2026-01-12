@@ -12,15 +12,48 @@ if (!supabaseAnonKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-export async function getUserIdOfAnonymousSignIn(): Promise<string> {
-  const { data: authData, error: authError } = await supabase.auth.signInAnonymously();
+let cachedUserId: string | null = null;
+let userIdPromise: Promise<string> | null = null;
 
-  if (authError) {
-    throw new Error('Supabase anonymous login failed', { cause: authError.message });
+export async function getCurrentUserId(): Promise<string> {
+  if (cachedUserId) {
+    return cachedUserId;
   }
-  if (!authData?.user) {
-    throw new Error('Supabase anonymous login failed: No user found');
+
+  if (userIdPromise) {
+    return userIdPromise;
   }
-  const userId: string = authData.user.id;
-  return userId;
+
+  const {
+    data: { session },
+    error: sessionError,
+  } = await supabase.auth.getSession();
+
+  if (sessionError) {
+    throw new Error('Failed to get Supabase session', { cause: sessionError.message });
+  }
+
+  if (session?.user?.id) {
+    cachedUserId = session.user.id;
+    return cachedUserId;
+  }
+
+  userIdPromise = (async () => {
+    const { data: authData, error: authError } = await supabase.auth.signInAnonymously();
+
+    if (authError) {
+      userIdPromise = null;
+      throw new Error('Supabase anonymous login failed', { cause: authError.message });
+    }
+    if (!authData?.user) {
+      userIdPromise = null;
+      throw new Error('Supabase anonymous login failed: No user found');
+    }
+
+    cachedUserId = authData.user.id;
+    userIdPromise = null;
+    return cachedUserId;
+  })();
+
+  return userIdPromise;
 }

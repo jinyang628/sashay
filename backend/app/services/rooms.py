@@ -1,8 +1,10 @@
 import httpx
 
+from app.models.api.rooms.get_player_number import GetPlayerNumberResponse
 from app.models.api.rooms.join import JoinRoomResponse
 from app.services.database import DatabaseService
-from app.utils.errors import RoomNotFoundError
+from app.utils.errors import (RoomMissingHostPlayerError, RoomNotFoundError,
+                              UserNotInRoomError)
 
 
 class RoomsService:
@@ -31,7 +33,9 @@ class RoomsService:
             or not isinstance(response.data, list)
             or not response.data[0]
         ):
-            raise RoomNotFoundError("Room not found")
+            raise RoomNotFoundError(
+                status_code=httpx.codes.NOT_FOUND, detail="Room not found"
+            )
 
         player_info = response.data[0]
         player_one_id = (
@@ -60,3 +64,50 @@ class RoomsService:
             message="Room joined successfully",
             is_player_one=None,
         )
+
+    async def get_player_number(
+        self, game_id: str, user_id: str
+    ) -> GetPlayerNumberResponse:
+        client = await DatabaseService().get_client()
+        response = (
+            await client.table("rooms")
+            .select("player_one_id", "player_two_id")
+            .eq("game_id", game_id)
+            .execute()
+        )
+        if (
+            not response.data
+            or not isinstance(response.data, list)
+            or not response.data[0]
+        ):
+            raise RoomNotFoundError(
+                status_code=httpx.codes.NOT_FOUND, detail="Room not found"
+            )
+
+        player_info = response.data[0]
+        player_one_id = (
+            player_info.get("player_one_id") if isinstance(player_info, dict) else None
+        )
+        player_two_id = (
+            player_info.get("player_two_id") if isinstance(player_info, dict) else None
+        )
+        if not player_one_id and not player_two_id:
+            raise RoomMissingHostPlayerError(
+                status_code=httpx.codes.NOT_FOUND, detail="Room is missing host player"
+            )
+
+        if player_one_id == user_id:
+            return GetPlayerNumberResponse(
+                status_code=httpx.codes.OK,
+                is_player_one=True,
+            )
+        elif player_two_id == user_id:
+            return GetPlayerNumberResponse(
+                status_code=httpx.codes.OK,
+                is_player_one=False,
+            )
+        else:
+            raise UserNotInRoomError(
+                status_code=httpx.codes.NOT_FOUND,
+                detail="User is not a player in the room",
+            )

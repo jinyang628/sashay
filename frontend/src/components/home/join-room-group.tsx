@@ -5,38 +5,32 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { joinRoom } from '@/actions/room/join';
-import { gameIdAtom, playerAtom } from '@/state/game';
+import { gameIdAtom } from '@/state/game';
 import { StatusCodes } from 'http-status-codes';
 import { useSetAtom } from 'jotai';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+
 import { JoinRoomResponse } from '@/types/room';
 
-import { playerEnum } from '@/lib/game/base';
-import { getUserIdOfAnonymousSignIn } from '@/lib/supabase';
-
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
+import { getCurrentUserId } from '@/lib/supabase';
 
 export default function JoinRoomGroup() {
   const [gameId, setGameId] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
 
   const router = useRouter();
-  const setPlayerAtom = useSetAtom(playerAtom);
   const setGameIdAtom = useSetAtom(gameIdAtom);
   const handleJoinRoom = async () => {
     setIsLoading(true);
     try {
-      const response: JoinRoomResponse = await joinRoom(gameId, await getUserIdOfAnonymousSignIn());
+      const response: JoinRoomResponse = await joinRoom(gameId, await getCurrentUserId());
       if (response.status_code === StatusCodes.OK) {
         console.log(`Room joined successfully: ${gameId}`);
         setGameIdAtom(gameId);
-        console.log(`You are ${response.is_player_one ? 'player one' : 'player two'}`);
-        setPlayerAtom(
-          response.is_player_one ? playerEnum.enum.player_one : playerEnum.enum.player_two,
-        );
         router.push(`/game/${gameId}`);
       } else {
         toast.error(response.message);
