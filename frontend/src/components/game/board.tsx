@@ -6,6 +6,7 @@ import { VenetianMaskIcon } from '@/components/icons/lucide-venetian-mask';
 
 import { COLS, PieceType, ROWS } from '@/lib/game/base';
 import { Piece } from '@/lib/game/engine';
+import { cn } from '@/lib/utils';
 
 interface GameBoardProps {
   PLAYER_SIDE_ROWS: number[];
