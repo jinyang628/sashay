@@ -49,7 +49,7 @@ export default function Board({
                 )}
               >
                 {/* Coordinate Label */}
-                <span className="absolute right-1 bottom-1 font-mono text-[9px] text-black/10">
+                <span className="absolute right-1 bottom-1 font-mono text-[9px] text-black">
                   {String.fromCharCode(65 + col)}
                   {ROWS - row}
                 </span>
