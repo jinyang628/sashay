@@ -1,8 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 
 import { HandFistIcon } from '@/components/icons/lucide-hand-fist';
 import { HighHeelIcon } from '@/components/icons/lucide-lab-high-heel';
@@ -22,7 +22,13 @@ interface SidebarProps {
   selectedMode: PlacementMode;
   validationError: string | null;
   onPlacementButtonClick: (mode: PlacementMode) => void;
-  onLockPlacementClick: () => void;
+  onLockPlacementClick: () => Promise<boolean>;
+}
+
+enum PlanningState {
+  planning = 'planning',
+  initializing = 'initializing',
+  locked = 'locked',
 }
 
 export default function Sidebar({
@@ -32,6 +38,21 @@ export default function Sidebar({
   onPlacementButtonClick,
   onLockPlacementClick,
 }: SidebarProps) {
+  const [planningState, setPlanningState] = useState(PlanningState.planning);
+
+  const handleLockPlacement = async () => {
+    setPlanningState(PlanningState.initializing);
+    try {
+      const isPlacementValid: boolean = await onLockPlacementClick();
+      if (isPlacementValid) {
+        setPlanningState(PlanningState.locked);
+      } else {
+        setPlanningState(PlanningState.planning);
+      }
+    } catch (error) {
+      setPlanningState(PlanningState.planning);
+    }
+  };
   const dancerPlacementButton = (
     <Button
       variant={selectedMode === 'DANCER' ? 'default' : 'outline'}
@@ -102,8 +123,22 @@ export default function Sidebar({
             <span>{validationError}</span>
           </div>
         )}
-        <Button className="w-full shadow-lg" size="lg" onClick={onLockPlacementClick}>
-          Lock Placement
+        <Button
+          className="w-full shadow-lg"
+          size="lg"
+          disabled={planningState !== PlanningState.planning}
+          onClick={handleLockPlacement}
+        >
+          {planningState === PlanningState.initializing ? (
+            <Loader2 className="h-5 w-5 animate-spin" />
+          ) : planningState === PlanningState.locked ? (
+            <span className="flex items-center gap-2">
+              <CheckCircle2 className="h-5 w-5 text-green-500" />
+              Waiting for opponent to finish
+            </span>
+          ) : (
+            'Lock Placement'
+          )}
         </Button>
       </div>
     </Card>

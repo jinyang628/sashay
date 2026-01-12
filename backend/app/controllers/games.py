@@ -41,9 +41,10 @@ class GamesController:
                 )
             except Exception as e:
                 log.info(
-                    "Error initializing pieces for player %s in game %s",
+                    "Error initializing pieces for %s in game %s: %s",
                     input.pieces[0].player,
                     input.game_id,
+                    e,
                 )
                 return JSONResponse(
                     content={"message": "Error initializing pieces"},

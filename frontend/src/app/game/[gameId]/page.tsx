@@ -83,14 +83,14 @@ export default function PlanningInterface() {
     setPlacedPieces((prev) => [...prev, newPiece]);
   };
 
-  const onLockPlacementClick = async () => {
+  const onLockPlacementClick = async (): Promise<boolean> => {
     if (
       pieceCounts.DANCER !== PIECE_LIMITS.DANCER ||
       pieceCounts.MASTER !== PIECE_LIMITS.MASTER ||
       pieceCounts.SPY !== PIECE_LIMITS.SPY
     ) {
       setValidationError('Please place all your pieces before confirming.');
-      return;
+      return false;
     }
 
     const board = new GameBoard(placedPieces);
@@ -100,20 +100,24 @@ export default function PlanningInterface() {
       setValidationError(
         `Illegal setup: Piece at ${surroundedPiece.position.row},${surroundedPiece.position.col} is surrounded.`,
       );
-      return;
+      return false;
     }
-
-    await initializePieces(
-      gameId,
-      placedPieces.map((piece) => ({
-        id: piece.id,
-        player: piece.player,
-        piece_type: piece.pieceType,
-        position: piece.position,
-        is_spy: piece.isSpy,
-      })),
-    );
-    alert('Setup Validated! Pieces locked in.');
+    try {
+      await initializePieces(
+        gameId,
+        placedPieces.map((piece) => ({
+          id: piece.id,
+          player: piece.player,
+          piece_type: piece.pieceType,
+          position: piece.position,
+          is_spy: piece.isSpy,
+        })),
+      );
+      return true;
+    } catch (error) {
+      console.error('Error initializing pieces:', error);
+      return false;
+    }
   };
 
   return (

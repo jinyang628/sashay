@@ -23,24 +23,22 @@ class GamesService:
                     "pieces": [piece.model_dump() for piece in pieces],
                 }
             ).execute()
-        else:
-            log.info("Found existing pieces for game %s", game_id)
-            if (
-                not isinstance(response.data[0], dict)
-                or "pieces" not in response.data[0]
-            ):
-                raise Exception(
-                    f"No 'pieces' key found in existing game data for game {game_id}"
-                )
-            existing_pieces = response.data[0]["pieces"]
-            if not isinstance(existing_pieces, list):
-                raise Exception(
-                    f"'pieces' key is not a list in existing game data for game {game_id}"
-                )
-            existing_pieces += [piece.model_dump() for piece in pieces]
-            await client.table("games").update({"pieces": existing_pieces}).eq(
-                "game_id", game_id
-            ).execute()
+            return
+
+        log.info("Found existing pieces for game %s", game_id)
+        if not isinstance(response.data[0], dict) or "pieces" not in response.data[0]:
+            raise Exception(
+                f"No 'pieces' key found in existing game data for game {game_id}"
+            )
+        existing_pieces = response.data[0]["pieces"]
+        if not isinstance(existing_pieces, list):
+            raise Exception(
+                f"'pieces' key is not a list in existing game data for game {game_id}"
+            )
+        existing_pieces += [piece.model_dump() for piece in pieces]
+        await client.table("games").update({"pieces": existing_pieces}).eq(
+            "game_id", game_id
+        ).execute()
 
         players_seen = set()
         for piece in existing_pieces:
