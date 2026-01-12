@@ -8,13 +8,7 @@ import { useAtomValue } from 'jotai';
 import Board from '@/components/game/board';
 import Sidebar from '@/components/game/side-bar';
 
-import {
-  PIECE_LIMITS,
-  PieceType,
-  PlacementMode,
-  Player,
-  Position,
-} from '@/lib/game/base';
+import { PIECE_LIMITS, PieceType, PlacementMode, Player, Position } from '@/lib/game/base';
 import { Dancer, GameBoard, Master, Piece } from '@/lib/game/engine';
 
 export default function PlanningInterface() {
