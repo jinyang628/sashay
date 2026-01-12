@@ -15,3 +15,15 @@ export interface Position {
   row: number;
   col: number;
 }
+
+export const PIECE_LIMITS = {
+  DANCER: 7,
+  MASTER: 2,
+  SPY: 1,
+};
+
+export enum PlacementMode {
+  DANCER = 'DANCER',
+  MASTER = 'MASTER',
+  SPY = 'SPY',
+}
