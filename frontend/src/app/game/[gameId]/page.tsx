@@ -14,6 +14,8 @@ import { toast } from 'sonner';
 import Board from '@/components/game/board';
 import Sidebar from '@/components/game/side-bar';
 
+import { roomStatusEnum } from '@/types/room';
+
 import {
   PIECE_LIMITS,
   PieceType,
@@ -24,7 +26,7 @@ import {
   playerEnum,
 } from '@/lib/game/base';
 import { Dancer, GameBoard, Master, Piece as PieceClass } from '@/lib/game/engine';
-import { getCurrentUserId } from '@/lib/supabase';
+import { getCurrentUserId, supabase } from '@/lib/supabase';
 
 const createPieceInstance = (
   player: Player,
@@ -70,6 +72,40 @@ export default function PlanningInterface() {
     fetchPlayerNumber();
   }, []);
 
+  useEffect(() => {
+    if (!gameId) return;
+
+    const channel = supabase
+      .channel(`room-${gameId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'rooms',
+          filter: `game_id=eq.${gameId}`,
+        },
+        (payload) => {
+          console.log('Change received!', payload);
+          const updatedRoom = payload.new;
+          if (updatedRoom.status === roomStatusEnum.enum.active) {
+            // setTimeout(() => {
+            //   router.push(`/game/${gameId}`);
+            // }, 1000);
+          }
+        },
+      )
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('Successfully listening for room updates');
+        }
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [gameId, router]);
+
   const pieceCounts = useMemo(() => {
     return {
       DANCER: placedPieces.filter((p) => p.pieceType === pieceTypeEnum.enum.dancer && !p.isSpy)
@@ -81,6 +117,10 @@ export default function PlanningInterface() {
 
   const handleSquareClick = (row: number, col: number) => {
     setValidationError(null);
+
+    if (player === null) {
+      return;
+    }
 
     // Remove piece if exists
     const existingIndex = placedPieces.findIndex(
