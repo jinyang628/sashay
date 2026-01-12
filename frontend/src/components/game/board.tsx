@@ -19,6 +19,13 @@ export default function Board({
   placedPieces,
   handleSquareClick,
 }: GameBoardProps) {
+  const coordinateLabel = (row: number, col: number) => (
+    <span className="absolute right-1 bottom-1 font-mono text-[9px] text-black">
+      {String.fromCharCode(65 + col)}
+      {ROWS - row}
+    </span>
+  );
+  
   return (
     <div className="flex flex-1 flex-col items-center justify-center">
       <div
@@ -49,10 +56,7 @@ export default function Board({
                 )}
               >
                 {/* Coordinate Label */}
-                <span className="absolute right-1 bottom-1 font-mono text-[9px] text-black">
-                  {String.fromCharCode(65 + col)}
-                  {ROWS - row}
-                </span>
+                {coordinateLabel(row, col)}
 
                 {piece && (
                   <div

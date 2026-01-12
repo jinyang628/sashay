@@ -86,7 +86,7 @@ export default function Sidebar({
   );
 
   return (
-    <Card className="bg-muted/30 flex w-72 flex-col gap-6 p-6">
+    <Card className="bg-muted/30 flex w-82 flex-col gap-6 p-6">
       <h2 className="mb-2 text-center text-xl font-bold tracking-tight">Assemble your team</h2>
 
       <div className="flex flex-col gap-3">
@@ -97,7 +97,7 @@ export default function Sidebar({
 
       <div className="mt-auto space-y-4">
         {validationError && (
-          <div className="text-destructive bg-destructive/10 animate-in fade-in slide-in-from-top-1 flex items-start gap-2 rounded-md p-3 text-sm">
+          <div className="text-destructive bg-destructive/10 animate-in fade-in slide-in-from-top-1 flex justify-center gap-2 rounded-md p-3 text-sm">
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
             <span>{validationError}</span>
           </div>
