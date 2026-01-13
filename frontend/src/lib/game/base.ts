@@ -7,6 +7,10 @@ export const playerEnum = z.enum(['player_one', 'player_two']);
 
 export type Player = z.infer<typeof playerEnum>;
 
+export const getPlayerSideRows = (player: Player) => {
+  return player === playerEnum.enum.player_one ? [0, 1, 2, 3] : [4, 5, 6, 7];
+};
+
 export const pieceTypeEnum = z.enum(['dancer', 'master']);
 
 export type PieceType = z.infer<typeof pieceTypeEnum>;

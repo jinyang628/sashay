@@ -22,6 +22,7 @@ import {
   PlacementMode,
   Player,
   Position,
+  getPlayerSideRows,
   pieceTypeEnum,
   playerEnum,
 } from '@/lib/game/base';
@@ -42,8 +43,8 @@ const createPieceInstance = (
 export default function PlanningInterface() {
   const [isLoading, setIsLoading] = useState(true);
   const [player, setPlayer] = useState<Player | null>(null);
+  const [playerSideRows, setPlayerSideRows] = useState<number[]>([]);
   const gameId = useAtomValue(gameIdAtom);
-  const PLAYER_SIDE_ROWS = player === playerEnum.enum.player_one ? [0, 1, 2, 3] : [4, 5, 6, 7];
   const [placedPieces, setPlacedPieces] = useState<PieceClass[]>([]);
   const [selectedMode, setSelectedMode] = useState<PlacementMode>(PlacementMode.DANCER);
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -52,15 +53,21 @@ export default function PlanningInterface() {
     const fetchPlayerNumber = async () => {
       try {
         const response = await getPlayerNumber(gameId, await getCurrentUserId());
+
+        if (response.is_player_one === null) {
+          toast.error('You are not a player in this game');
+          window.location.replace('/');
+          return;
+        }
+
         if (response.is_player_one === true) {
           console.log('You are player one');
           setPlayer(playerEnum.enum.player_one);
-        } else if (response.is_player_one === false) {
+          setPlayerSideRows(getPlayerSideRows(playerEnum.enum.player_one));
+        } else {
           console.log('You are player two');
           setPlayer(playerEnum.enum.player_two);
-        } else {
-          toast.error('You are not a player in this game');
-          router.push('/');
+          setPlayerSideRows(getPlayerSideRows(playerEnum.enum.player_two));
         }
       } catch (error) {
         console.error('Error getting player number:', error);
@@ -132,9 +139,9 @@ export default function PlanningInterface() {
     }
 
     // Territory Check
-    if (!PLAYER_SIDE_ROWS.includes(row)) {
+    if (!playerSideRows.includes(row)) {
       setValidationError(
-        `You must place pieces on your side (Rows ${PLAYER_SIDE_ROWS[0]}-${PLAYER_SIDE_ROWS[3]})`,
+        `You must place pieces on your side (Rows ${playerSideRows[0]}-${playerSideRows[3]})`,
       );
       return;
     }
@@ -210,7 +217,7 @@ export default function PlanningInterface() {
       />
 
       <Board
-        PLAYER_SIDE_ROWS={PLAYER_SIDE_ROWS}
+        PLAYER_SIDE_ROWS={playerSideRows}
         placedPieces={placedPieces}
         handleSquareClick={handleSquareClick}
       />
