@@ -1,12 +1,12 @@
 import uuid
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from collections import deque
 from enum import StrEnum
-from typing import Optional
+from typing import Literal, Optional
 
 from pydantic import BaseModel, Field
 
-from app.models.game.base import COLS, ROWS, Player, Position
+from app.models.game.base import COLS, ROWS, PieceLimits, Player, Position
 
 
 class GameBoard:
@@ -17,6 +17,28 @@ class GameBoard:
         for piece in pieces:
             self.board[piece.position.row][piece.position.col] = piece
 
+    def are_pieces_valid_during_setup(self, pieces: list["Piece"]) -> bool:
+        dancer_count: int = 0
+        master_count: int = 0
+        spy_count: int = 0
+        for piece in pieces:
+            if piece.is_surrounded(game_board=self):
+                return False
+            if piece.piece_type == PieceType.DANCER:
+                if piece.is_spy:
+                    spy_count += 1
+                else:
+                    dancer_count += 1
+            elif piece.piece_type == PieceType.MASTER:
+                master_count += 1
+            else:
+                raise TypeError(f"Invalid piece type: {piece.piece_type}")
+        return (
+            dancer_count == PieceLimits.DANCER.value
+            and master_count == PieceLimits.MASTER.value
+            and spy_count == PieceLimits.SPY.value
+        )
+
     def remove_piece(self, piece: "Piece") -> None:
         self.board[piece.position.row][piece.position.col] = None
 
@@ -26,7 +48,7 @@ class PieceType(StrEnum):
     MASTER = "master"
 
 
-class Piece(BaseModel, ABC):
+class Piece(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     piece_type: PieceType
     player: Player
@@ -41,11 +63,13 @@ class Piece(BaseModel, ABC):
         pass
 
     @abstractmethod
-    def is_piece_surrounded(self, game_board: GameBoard) -> bool:
+    def is_surrounded(self, game_board: GameBoard) -> bool:
         pass
 
 
 class Dancer(Piece):
+    piece_type: Literal[PieceType.DANCER] = PieceType.DANCER
+
     def get_possible_new_positions(self, game_board: GameBoard) -> list[Position]:
         possible_moves = []
         # Move down
@@ -74,7 +98,7 @@ class Dancer(Piece):
 
         return possible_moves
 
-    def is_piece_surrounded(self, game_board: GameBoard) -> bool:
+    def is_surrounded(self, game_board: GameBoard) -> bool:
         """Dancer is surrounded if top, right, bottom, and left are blocked.
         A side is considered blocked if it's at the board edge or has any piece.
         """
@@ -96,6 +120,8 @@ class Dancer(Piece):
 
 
 class Master(Piece):
+    piece_type: Literal[PieceType.MASTER] = PieceType.MASTER
+
     def get_possible_new_positions(self, game_board: GameBoard) -> list[Position]:
         """Master can move:
         - Orthogonally (top/down/left/right): exactly 1 space only
@@ -145,7 +171,7 @@ class Master(Piece):
 
         return possible_moves
 
-    def is_piece_surrounded(self, game_board: GameBoard) -> bool:
+    def is_surrounded(self, game_board: GameBoard) -> bool:
         """Master is surrounded if all 8 adjacent positions (including diagonals) are blocked.
         A position is considered blocked if it's at the board edge or has any piece.
         """
@@ -220,7 +246,7 @@ class GameEngine:
                     raise TypeError(f"Expected Piece, got {type(neighbor_piece)}")
                 if (
                     neighbor_piece.player != piece.player
-                    and neighbor_piece.is_piece_surrounded(game_board=self.game_board)
+                    and neighbor_piece.is_surrounded(game_board=self.game_board)
                 ):
                     self.game_board.remove_piece(piece=neighbor_piece)
                     captured_pieces.append(neighbor_piece)

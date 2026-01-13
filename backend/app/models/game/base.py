@@ -1,4 +1,4 @@
-from enum import StrEnum
+from enum import Enum, StrEnum
 
 from pydantic import BaseModel, Field
 
@@ -14,3 +14,9 @@ class Position(BaseModel, frozen=True):
 class Player(StrEnum):
     PLAYER_ONE = "player_one"
     PLAYER_TWO = "player_two"
+
+
+class PieceLimits(Enum):
+    DANCER = 7
+    MASTER = 2
+    SPY = 1

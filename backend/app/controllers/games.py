@@ -30,7 +30,8 @@ class GamesController:
                     input.game_id,
                 )
                 await self.service.initialize(
-                    game_id=input.game_id, pieces=input.pieces
+                    game_id=input.game_id,
+                    pieces=input.pieces,  # pyright: ignore[reportArgumentType]
                 )
                 return JSONResponse(
                     content={

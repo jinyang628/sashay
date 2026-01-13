@@ -1,13 +1,23 @@
 import logging
 
-from app.models.game.engine import Dancer, Master
+import httpx
+
+from app.models.game.engine import GameBoard, Piece
 from app.services.database import DatabaseService
+from app.utils.errors import InvalidInitializationError
 
 log = logging.getLogger(__name__)
 
 
 class GamesService:
-    async def initialize(self, game_id: str, pieces: list[Dancer | Master]) -> None:
+    async def initialize(self, game_id: str, pieces: list[Piece]) -> None:
+        game_board = GameBoard(pieces=pieces)
+        if not game_board.are_pieces_valid_during_setup(pieces=pieces):
+            raise InvalidInitializationError(
+                status_code=httpx.codes.BAD_REQUEST,
+                detail=f"Invalid board setup",
+            )
+
         client = await DatabaseService().get_client()
         response = (
             await client.table("games")

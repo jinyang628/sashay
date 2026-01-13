@@ -1,6 +1,6 @@
 'use client';
 
-import router from 'next/router';
+import router from 'next/navigation';
 
 import React, { useEffect, useMemo, useState } from 'react';
 
