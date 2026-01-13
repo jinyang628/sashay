@@ -6,7 +6,8 @@ from typing import Literal, Optional
 
 from pydantic import BaseModel, Field
 
-from app.models.game.base import COLS, ROWS, PieceLimits, Player, Position
+from app.models.game.base import (COLS, ROWS, PieceLimits, Player, Position,
+                                  get_player_side_rows)
 
 
 class GameBoard:
@@ -21,8 +22,15 @@ class GameBoard:
         dancer_count: int = 0
         master_count: int = 0
         spy_count: int = 0
+        players_seen = set()
         for piece in pieces:
+            players_seen.add(piece.player)
+            if len(players_seen) > 1:
+                return False
             if piece.is_surrounded(game_board=self):
+                return False
+            player_side_rows: list[int] = get_player_side_rows(player=piece.player)
+            if piece.position.row not in player_side_rows:
                 return False
             if piece.piece_type == PieceType.DANCER:
                 if piece.is_spy:
@@ -33,6 +41,7 @@ class GameBoard:
                 master_count += 1
             else:
                 raise TypeError(f"Invalid piece type: {piece.piece_type}")
+
         return (
             dancer_count == PieceLimits.DANCER.value
             and master_count == PieceLimits.MASTER.value
