@@ -4,6 +4,7 @@ import router from 'next/navigation';
 
 import React, { useEffect, useMemo, useState } from 'react';
 
+import { getPieces } from '@/actions/game/get-pieces';
 import { initializePieces } from '@/actions/game/initialize';
 import { getPlayerNumber } from '@/actions/room/get-player-number';
 import { gameIdAtom } from '@/state/game';
@@ -92,13 +93,12 @@ export default function PlanningInterface() {
           table: 'rooms',
           filter: `game_id=eq.${gameId}`,
         },
-        (payload) => {
+        async (payload) => {
           console.log('Change received!', payload);
           const updatedRoom = payload.new;
           if (updatedRoom.status === roomStatusEnum.enum.active) {
-            // setTimeout(() => {
-            //   router.push(`/game/${gameId}`);
-            // }, 1000);
+            const pieces = await getPieces(gameId);
+            console.log('Pieces:', pieces);
           }
         },
       )

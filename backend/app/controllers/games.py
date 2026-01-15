@@ -4,7 +4,8 @@ import httpx
 from fastapi import APIRouter
 from starlette.responses import JSONResponse
 
-from app.models.api.initialize import InitializeRequest
+from app.models.api.games.get_pieces import GetPiecesResponse
+from app.models.api.games.initialize import InitializeRequest
 from app.services.games import GamesService
 
 log = logging.getLogger(__name__)
@@ -50,4 +51,20 @@ class GamesController:
                 return JSONResponse(
                     content={"message": "Error initializing pieces"},
                     status_code=httpx.codes.INTERNAL_SERVER_ERROR,
+                )
+
+        @router.get(
+            "/pieces",
+        )
+        async def get_pieces(game_id: str) -> GetPiecesResponse:
+            try:
+                log.info("Getting pieces for game %s", game_id)
+                response = await self.service.get_pieces(game_id=game_id)
+                log.info("Pieces retrieved successfully for game %s", game_id)
+                return response
+            except Exception as e:
+                log.info("Error getting pieces for game %s: %s", game_id, e)
+                return GetPiecesResponse(
+                    status_code=httpx.codes.INTERNAL_SERVER_ERROR,
+                    pieces=[],
                 )

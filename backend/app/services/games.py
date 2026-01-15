@@ -2,14 +2,47 @@ import logging
 
 import httpx
 
+from app.models.api.games.get_pieces import GetPiecesResponse
 from app.models.game.engine import GameBoard, Piece
 from app.services.database import DatabaseService
-from app.utils.errors import InvalidInitializationError
+from app.utils.errors import InvalidInitializationError, RoomNotFoundError
 
 log = logging.getLogger(__name__)
 
 
 class GamesService:
+    async def get_pieces(self, game_id: str) -> GetPiecesResponse:
+        client = await DatabaseService().get_client()
+        response = (
+            await client.table("games")
+            .select("pieces")
+            .eq("game_id", game_id)
+            .execute()
+        )
+        if not response.data:
+            raise RoomNotFoundError(
+                status_code=httpx.codes.NOT_FOUND,
+                detail=f"Room not found",
+            )
+        if (
+            not response.data[0]
+            or not isinstance(response.data[0], dict)
+            or "pieces" not in response.data[0]
+        ):
+            raise Exception(
+                f"No 'pieces' key found in existing game data for game {game_id}"
+            )
+        if not isinstance(response.data[0]["pieces"], list):
+            raise Exception(
+                f"'pieces' key is not a list in existing game data for game {game_id}"
+            )
+        pieces = response.data[0]["pieces"]
+
+        return GetPiecesResponse(
+            status_code=httpx.codes.OK,
+            pieces=pieces,
+        )
+
     async def initialize(self, game_id: str, pieces: list[Piece]) -> None:
         game_board = GameBoard(pieces=pieces)
         if not game_board.are_pieces_valid_during_setup(pieces=pieces):
