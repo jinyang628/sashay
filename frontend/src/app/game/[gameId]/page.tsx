@@ -1,7 +1,5 @@
 'use client';
 
-import router from 'next/navigation';
-
 import React, { useEffect, useMemo, useState } from 'react';
 
 import { getPieces } from '@/actions/game/get-pieces';
@@ -46,9 +44,12 @@ export default function PlanningInterface() {
   const [player, setPlayer] = useState<Player | null>(null);
   const [playerSideRows, setPlayerSideRows] = useState<number[]>([]);
   const gameId = useAtomValue(gameIdAtom);
-  const [placedPieces, setPlacedPieces] = useState<PieceClass[]>([]);
+  const [allyPieces, setAllyPieces] = useState<PieceClass[]>([]);
+  const [enemyPieces, setEnemyPieces] = useState<PieceClass[]>([]);
   const [selectedMode, setSelectedMode] = useState<PlacementMode>(PlacementMode.DANCER);
   const [validationError, setValidationError] = useState<string | null>(null);
+
+  const isPlanningPhase = useMemo(() => enemyPieces.length === 0, [enemyPieces]);
 
   useEffect(() => {
     const fetchPlayerNumber = async () => {
@@ -81,7 +82,7 @@ export default function PlanningInterface() {
   }, []);
 
   useEffect(() => {
-    if (!gameId) return;
+    if (!gameId || !player) return;
 
     const channel = supabase
       .channel(`room-${gameId}`)
@@ -94,11 +95,23 @@ export default function PlanningInterface() {
           filter: `game_id=eq.${gameId}`,
         },
         async (payload) => {
-          console.log('Change received!', payload);
           const updatedRoom = payload.new;
           if (updatedRoom.status === roomStatusEnum.enum.active) {
-            const pieces = await getPieces(gameId);
-            console.log('Pieces:', pieces);
+            const piecesData = await getPieces(gameId);
+            setEnemyPieces(
+              piecesData.pieces
+                .filter((p) => p.player !== player)
+                .map((p) => {
+                  console.log(p.player);
+                  console.log(player);
+                  return createPieceInstance(
+                    p.player,
+                    p.piece_type,
+                    { row: p.position.row, col: p.position.col },
+                    p.is_spy,
+                  );
+                }),
+            );
           }
         },
       )
@@ -111,16 +124,16 @@ export default function PlanningInterface() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [gameId, router]);
+  }, [gameId, player]);
 
   const pieceCounts = useMemo(() => {
     return {
-      DANCER: placedPieces.filter((p) => p.pieceType === pieceTypeEnum.enum.dancer && !p.isSpy)
+      DANCER: allyPieces.filter((p) => p.pieceType === pieceTypeEnum.enum.dancer && !p.isSpy)
         .length,
-      MASTER: placedPieces.filter((p) => p.pieceType === pieceTypeEnum.enum.master).length,
-      SPY: placedPieces.filter((p) => p.isSpy).length,
+      MASTER: allyPieces.filter((p) => p.pieceType === pieceTypeEnum.enum.master).length,
+      SPY: allyPieces.filter((p) => p.isSpy).length,
     };
-  }, [placedPieces]);
+  }, [allyPieces]);
 
   const handleSquareClick = (row: number, col: number) => {
     setValidationError(null);
@@ -130,11 +143,11 @@ export default function PlanningInterface() {
     }
 
     // Remove piece if exists
-    const existingIndex = placedPieces.findIndex(
+    const existingIndex = allyPieces.findIndex(
       (p) => p.position.row === row && p.position.col === col,
     );
     if (existingIndex !== -1) {
-      setPlacedPieces((prev) => prev.filter((_, i) => i !== existingIndex));
+      setAllyPieces((prev) => prev.filter((_, i) => i !== existingIndex));
       return;
     }
 
@@ -158,7 +171,7 @@ export default function PlanningInterface() {
     const isSpy = selectedMode === PlacementMode.SPY;
 
     const newPiece = createPieceInstance(player, type, { row, col }, isSpy);
-    setPlacedPieces((prev) => [...prev, newPiece]);
+    setAllyPieces((prev) => [...prev, newPiece]);
   };
 
   const onLockPlacementClick = async (): Promise<boolean> => {
@@ -171,8 +184,8 @@ export default function PlanningInterface() {
       return false;
     }
 
-    const board = new GameBoard(placedPieces);
-    const surroundedPiece = placedPieces.find((p) => p.isPieceSurrounded(board));
+    const board = new GameBoard(allyPieces);
+    const surroundedPiece = allyPieces.find((p) => p.isPieceSurrounded(board));
 
     if (surroundedPiece) {
       setValidationError(
@@ -183,7 +196,7 @@ export default function PlanningInterface() {
     try {
       await initializePieces(
         gameId,
-        placedPieces.map((piece) => ({
+        allyPieces.map((piece) => ({
           id: piece.id,
           player: piece.player,
           piece_type: piece.pieceType,
@@ -218,7 +231,9 @@ export default function PlanningInterface() {
 
       <Board
         PLAYER_SIDE_ROWS={playerSideRows}
-        placedPieces={placedPieces}
+        allyPieces={allyPieces}
+        enemyPieces={enemyPieces}
+        isPlanningPhase={isPlanningPhase}
         handleSquareClick={handleSquareClick}
       />
     </div>

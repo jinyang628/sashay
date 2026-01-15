@@ -10,13 +10,17 @@ import { cn } from '@/lib/utils';
 
 interface GameBoardProps {
   PLAYER_SIDE_ROWS: number[];
-  placedPieces: Piece[];
+  allyPieces: Piece[];
+  enemyPieces: Piece[];
+  isPlanningPhase: boolean;
   handleSquareClick: (row: number, col: number) => void;
 }
 
 export default function Board({
   PLAYER_SIDE_ROWS,
-  placedPieces,
+  allyPieces,
+  enemyPieces,
+  isPlanningPhase,
   handleSquareClick,
 }: GameBoardProps) {
   const coordinateLabel = (row: number, col: number) => (
@@ -38,7 +42,8 @@ export default function Board({
       >
         {Array.from({ length: ROWS }).map((_, row) =>
           Array.from({ length: COLS }).map((_, col) => {
-            const piece = placedPieces.find(
+            const piece = allyPieces.find((p) => p.position.row === row && p.position.col === col);
+            const enemyPiece = enemyPieces.find(
               (p) => p.position.row === row && p.position.col === col,
             );
             const isPlayerSide = PLAYER_SIDE_ROWS.includes(row);
@@ -51,7 +56,9 @@ export default function Board({
                 className={cn(
                   'group relative flex cursor-pointer items-center justify-center transition-all',
                   isLight ? 'bg-slate-100' : 'bg-slate-200',
-                  !isPlayerSide && 'bg-stripes-muted cursor-not-allowed opacity-30',
+                  !isPlayerSide &&
+                    isPlanningPhase &&
+                    'bg-stripes-muted cursor-not-allowed opacity-30',
                   'hover:ring-primary/50 hover:z-10 hover:ring-2',
                 )}
               >
@@ -80,6 +87,12 @@ export default function Board({
 
                 {!piece && isPlayerSide && (
                   <div className="group-hover:bg-primary/50 h-1.5 w-1.5 rounded-full bg-slate-400/30" />
+                )}
+
+                {enemyPiece && (
+                  <div className="flex h-14 w-14 scale-100 items-center justify-center rounded-xl bg-slate-400 shadow-md transition-all group-hover:scale-110">
+                    <VenetianMaskIcon className="h-8 w-8 text-slate-900" />
+                  </div>
                 )}
               </div>
             );

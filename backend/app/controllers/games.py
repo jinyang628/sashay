@@ -7,6 +7,7 @@ from starlette.responses import JSONResponse
 from app.models.api.games.get_pieces import GetPiecesResponse
 from app.models.api.games.initialize import InitializeRequest
 from app.services.games import GamesService
+from app.utils.errors import RoomNotFoundError
 
 log = logging.getLogger(__name__)
 
@@ -62,8 +63,14 @@ class GamesController:
                 response = await self.service.get_pieces(game_id=game_id)
                 log.info("Pieces retrieved successfully for game %s", game_id)
                 return response
+            except RoomNotFoundError as e:
+                log.exception("Room not found for game %s", game_id)
+                return GetPiecesResponse(
+                    status_code=httpx.codes.NOT_FOUND,
+                    pieces=[],
+                )
             except Exception as e:
-                log.info("Error getting pieces for game %s: %s", game_id, e)
+                log.exception("Error getting pieces for game %s: %s", game_id, e)
                 return GetPiecesResponse(
                     status_code=httpx.codes.INTERNAL_SERVER_ERROR,
                     pieces=[],
