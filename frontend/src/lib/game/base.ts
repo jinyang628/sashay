@@ -38,7 +38,7 @@ export const PIECE_LIMITS = {
   SPY: 1,
 };
 
-export enum PlacementMode {
+export enum PlanningPhasePlacementMode {
   DANCER = 'DANCER',
   MASTER = 'MASTER',
   SPY = 'SPY',

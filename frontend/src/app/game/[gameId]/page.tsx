@@ -18,7 +18,7 @@ import { roomStatusEnum } from '@/types/room';
 import {
   PIECE_LIMITS,
   PieceType,
-  PlacementMode,
+  PlanningPhasePlacementMode,
   Player,
   Position,
   getPlayerSideRows,
@@ -46,7 +46,8 @@ export default function PlanningInterface() {
   const gameId = useAtomValue(gameIdAtom);
   const [allyPieces, setAllyPieces] = useState<PieceClass[]>([]);
   const [enemyPieces, setEnemyPieces] = useState<PieceClass[]>([]);
-  const [selectedMode, setSelectedMode] = useState<PlacementMode>(PlacementMode.DANCER);
+  const [planningPhasePlacementMode, setPlanningPhasePlacementMode] =
+    useState<PlanningPhasePlacementMode>(PlanningPhasePlacementMode.DANCER);
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const isPlanningPhase = useMemo(() => enemyPieces.length === 0, [enemyPieces]);
@@ -142,36 +143,41 @@ export default function PlanningInterface() {
       return;
     }
 
-    // Remove piece if exists
-    const existingIndex = allyPieces.findIndex(
-      (p) => p.position.row === row && p.position.col === col,
-    );
-    if (existingIndex !== -1) {
-      setAllyPieces((prev) => prev.filter((_, i) => i !== existingIndex));
-      return;
-    }
-
-    // Territory Check
-    if (!playerSideRows.includes(row)) {
-      setValidationError(
-        `You must place pieces on your side (Rows ${playerSideRows[0]}-${playerSideRows[3]})`,
+    if (isPlanningPhase) {
+      // Remove piece if exists
+      const existingIndex = allyPieces.findIndex(
+        (p) => p.position.row === row && p.position.col === col,
       );
-      return;
+      if (existingIndex !== -1) {
+        setAllyPieces((prev) => prev.filter((_, i) => i !== existingIndex));
+        return;
+      }
+
+      // Territory Check
+      if (!playerSideRows.includes(row)) {
+        setValidationError(
+          `You must place pieces on your side (Rows ${playerSideRows[0]}-${playerSideRows[3]})`,
+        );
+        return;
+      }
+
+      // Inventory Limit Check
+      if (pieceCounts[planningPhasePlacementMode] >= PIECE_LIMITS[planningPhasePlacementMode]) {
+        setValidationError(`You have no more ${planningPhasePlacementMode.toLowerCase()}s left.`);
+        return;
+      }
+
+      // Create the piece on the board
+      const type =
+        planningPhasePlacementMode === PlanningPhasePlacementMode.MASTER
+          ? pieceTypeEnum.enum.master
+          : pieceTypeEnum.enum.dancer;
+      const isSpy = planningPhasePlacementMode === PlanningPhasePlacementMode.SPY;
+
+      const newPiece = createPieceInstance(player, type, { row, col }, isSpy);
+      setAllyPieces((prev) => [...prev, newPiece]);
+    } else {
     }
-
-    // Inventory Limit Check
-    if (pieceCounts[selectedMode] >= PIECE_LIMITS[selectedMode]) {
-      setValidationError(`You have no more ${selectedMode.toLowerCase()}s left.`);
-      return;
-    }
-
-    // Create the piece on the board
-    const type =
-      selectedMode === PlacementMode.MASTER ? pieceTypeEnum.enum.master : pieceTypeEnum.enum.dancer;
-    const isSpy = selectedMode === PlacementMode.SPY;
-
-    const newPiece = createPieceInstance(player, type, { row, col }, isSpy);
-    setAllyPieces((prev) => [...prev, newPiece]);
   };
 
   const onLockPlacementClick = async (): Promise<boolean> => {
@@ -223,9 +229,9 @@ export default function PlanningInterface() {
     <div className="mx-auto flex h-[90vh] max-w-6xl flex-row gap-8 p-8">
       <Sidebar
         pieceCounts={pieceCounts}
-        selectedMode={selectedMode}
+        planningPhasePlacementMode={planningPhasePlacementMode}
         validationError={validationError}
-        onPlacementButtonClick={setSelectedMode}
+        onPlacementModeButtonClick={setPlanningPhasePlacementMode}
         onLockPlacementClick={onLockPlacementClick}
       />
 

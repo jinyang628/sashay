@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 
-import { PIECE_LIMITS, PlacementMode } from '@/lib/game/base';
+import { PIECE_LIMITS, PlanningPhasePlacementMode } from '@/lib/game/base';
 
 interface SidebarProps {
   pieceCounts: {
@@ -19,9 +19,9 @@ interface SidebarProps {
     MASTER: number;
     SPY: number;
   };
-  selectedMode: PlacementMode;
+  planningPhasePlacementMode: PlanningPhasePlacementMode;
   validationError: string | null;
-  onPlacementButtonClick: (mode: PlacementMode) => void;
+  onPlacementModeButtonClick: (mode: PlanningPhasePlacementMode) => void;
   onLockPlacementClick: () => Promise<boolean>;
 }
 
@@ -33,9 +33,9 @@ enum PlanningState {
 
 export default function Sidebar({
   pieceCounts,
-  selectedMode,
+  planningPhasePlacementMode,
   validationError,
-  onPlacementButtonClick,
+  onPlacementModeButtonClick,
   onLockPlacementClick,
 }: SidebarProps) {
   const [planningState, setPlanningState] = useState(PlanningState.planning);
@@ -55,9 +55,9 @@ export default function Sidebar({
   };
   const dancerPlacementButton = (
     <Button
-      variant={selectedMode === 'DANCER' ? 'default' : 'outline'}
+      variant={planningPhasePlacementMode === 'DANCER' ? 'default' : 'outline'}
       className="h-14 justify-between"
-      onClick={() => onPlacementButtonClick(PlacementMode.DANCER)}
+      onClick={() => onPlacementModeButtonClick(PlanningPhasePlacementMode.DANCER)}
     >
       <div className="flex items-center gap-3">
         <HighHeelIcon className="h-5 w-5" />
@@ -72,10 +72,11 @@ export default function Sidebar({
 
   const masterPlacementButton = (
     <Button
-      variant={selectedMode === 'MASTER' ? 'default' : 'outline'}
+      variant={planningPhasePlacementMode === 'MASTER' ? 'default' : 'outline'}
       className="h-14 justify-between"
-      onClick={() => onPlacementButtonClick(PlacementMode.MASTER)}
+      onClick={() => onPlacementModeButtonClick(PlanningPhasePlacementMode.MASTER)}
     >
+      Mode{' '}
       <div className="flex items-center gap-3">
         <HandFistIcon className="h-5 w-5" />
         <div className="flex flex-col items-start leading-tight">
@@ -89,9 +90,9 @@ export default function Sidebar({
 
   const spyPlacementButton = (
     <Button
-      variant={selectedMode === 'SPY' ? 'default' : 'outline'}
+      variant={planningPhasePlacementMode === 'SPY' ? 'default' : 'outline'}
       className="h-14 justify-between border-red-200 hover:border-red-300"
-      onClick={() => onPlacementButtonClick(PlacementMode.SPY)}
+      onClick={() => onPlacementModeButtonClick(PlanningPhasePlacementMode.SPY)}
     >
       <div className="flex items-center gap-3">
         <VenetianMaskIcon className="h-5 w-5 text-red-500" />
