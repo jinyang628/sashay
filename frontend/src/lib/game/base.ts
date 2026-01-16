@@ -45,6 +45,6 @@ export enum PlanningPhasePlacementMode {
 }
 
 export type SelectedPieceState = {
-  piece: PieceClass | null;
+  piece: Piece | null;
   possiblePositions: Position[];
 };

@@ -26,7 +26,7 @@ import {
   pieceTypeEnum,
   playerEnum,
 } from '@/lib/game/base';
-import { Dancer, GameBoard, Master, Piece as PieceClass } from '@/lib/game/engine';
+import { Dancer, GameBoard, Master, Piece } from '@/lib/game/engine';
 import { getCurrentUserId, supabase } from '@/lib/supabase';
 
 const createPieceInstance = (
@@ -34,7 +34,7 @@ const createPieceInstance = (
   type: PieceType,
   pos: Position,
   isSpy: boolean,
-): PieceClass => {
+): Piece => {
   return type === pieceTypeEnum.enum.dancer
     ? new Dancer(player, pos, isSpy)
     : new Master(player, pos, isSpy);
@@ -45,8 +45,8 @@ export default function PlanningInterface() {
   const [player, setPlayer] = useState<Player | null>(null);
   const [playerSideRows, setPlayerSideRows] = useState<number[]>([]);
   const gameId = useAtomValue(gameIdAtom);
-  const [allyPieces, setAllyPieces] = useState<PieceClass[]>([]);
-  const [enemyPieces, setEnemyPieces] = useState<PieceClass[]>([]);
+  const [allyPieces, setAllyPieces] = useState<Piece[]>([]);
+  const [enemyPieces, setEnemyPieces] = useState<Piece[]>([]);
   const [gameBoard, setGameBoard] = useState<GameBoard | null>(null);
   const [planningPhasePlacementMode, setPlanningPhasePlacementMode] =
     useState<PlanningPhasePlacementMode>(PlanningPhasePlacementMode.DANCER);
@@ -193,7 +193,13 @@ export default function PlanningInterface() {
         if (piece.position.row === row && piece.position.col === col) {
           const possibleNewPositions: Position[] = piece.getPossibleNewPositions(gameBoard);
           setSelectedPieceState({
-            piece: piece,
+            piece: {
+              id: piece.id,
+              player: piece.player,
+              piece_type: piece.pieceType,
+              position: piece.position,
+              is_spy: piece.isSpy,
+            },
             possiblePositions: possibleNewPositions,
           });
           return;
@@ -203,7 +209,6 @@ export default function PlanningInterface() {
         if (
           selectedPieceState.possiblePositions.some((pos) => pos.row === row && pos.col === col)
         ) {
-          console.log('Clicked on a possible position');
         } else {
           setSelectedPieceState({
             piece: null,
