@@ -4,7 +4,8 @@ import { HandFistIcon } from '@/components/icons/lucide-hand-fist';
 import { HighHeelIcon } from '@/components/icons/lucide-lab-high-heel';
 import { VenetianMaskIcon } from '@/components/icons/lucide-venetian-mask';
 
-import { COLS, ROWS, pieceTypeEnum } from '@/lib/game/base';
+import { SelectedPieceState } from '@/lib/game/base';
+import { COLS, Position, ROWS, pieceTypeEnum } from '@/lib/game/base';
 import { Piece } from '@/lib/game/engine';
 import { cn } from '@/lib/utils';
 
@@ -13,6 +14,7 @@ interface GameBoardProps {
   allyPieces: Piece[];
   enemyPieces: Piece[];
   isPlanningPhase: boolean;
+  selectedPieceState: SelectedPieceState;
   handleSquareClick: (row: number, col: number) => void;
 }
 
@@ -21,6 +23,7 @@ export default function Board({
   allyPieces,
   enemyPieces,
   isPlanningPhase,
+  selectedPieceState,
   handleSquareClick,
 }: GameBoardProps) {
   const coordinateLabel = (row: number, col: number) => (
@@ -48,14 +51,20 @@ export default function Board({
             );
             const isPlayerSide = PLAYER_SIDE_ROWS.includes(row);
             const isLight = (row + col) % 2 === 0;
-
+            const isPossiblePosition = selectedPieceState.possiblePositions.some(
+              (pos: Position) => pos.row === row && pos.col === col,
+            );
+            const isSelectedPiece =
+              selectedPieceState.piece?.position.row === row &&
+              selectedPieceState.piece?.position.col === col;
             return (
               <div
                 key={`${row}-${col}`}
                 onClick={() => handleSquareClick(row, col)}
                 className={cn(
                   'group relative flex cursor-pointer items-center justify-center transition-all',
-                  isLight ? 'bg-slate-100' : 'bg-slate-200',
+                  isSelectedPiece ? 'bg-green-400' : isLight ? 'bg-slate-100' : 'bg-slate-200',
+                  isPossiblePosition && 'bg-green-200',
                   !isPlayerSide &&
                     isPlanningPhase &&
                     'bg-stripes-muted cursor-not-allowed opacity-30',

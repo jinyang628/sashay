@@ -15,6 +15,7 @@ import Sidebar from '@/components/game/side-bar';
 
 import { roomStatusEnum } from '@/types/room';
 
+import { SelectedPieceState } from '@/lib/game/base';
 import {
   PIECE_LIMITS,
   PieceType,
@@ -46,8 +47,13 @@ export default function PlanningInterface() {
   const gameId = useAtomValue(gameIdAtom);
   const [allyPieces, setAllyPieces] = useState<PieceClass[]>([]);
   const [enemyPieces, setEnemyPieces] = useState<PieceClass[]>([]);
+  const [gameBoard, setGameBoard] = useState<GameBoard | null>(null);
   const [planningPhasePlacementMode, setPlanningPhasePlacementMode] =
     useState<PlanningPhasePlacementMode>(PlanningPhasePlacementMode.DANCER);
+  const [selectedPieceState, setSelectedPieceState] = useState<SelectedPieceState>({
+    piece: null,
+    possiblePositions: [],
+  });
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const isPlanningPhase = useMemo(() => enemyPieces.length === 0, [enemyPieces]);
@@ -64,11 +70,9 @@ export default function PlanningInterface() {
         }
 
         if (response.is_player_one === true) {
-          console.log('You are player one');
           setPlayer(playerEnum.enum.player_one);
           setPlayerSideRows(getPlayerSideRows(playerEnum.enum.player_one));
         } else {
-          console.log('You are player two');
           setPlayer(playerEnum.enum.player_two);
           setPlayerSideRows(getPlayerSideRows(playerEnum.enum.player_two));
         }
@@ -103,8 +107,6 @@ export default function PlanningInterface() {
               piecesData.pieces
                 .filter((p) => p.player !== player)
                 .map((p) => {
-                  console.log(p.player);
-                  console.log(player);
                   return createPieceInstance(
                     p.player,
                     p.piece_type,
@@ -112,6 +114,13 @@ export default function PlanningInterface() {
                     p.is_spy,
                   );
                 }),
+            );
+            setGameBoard(
+              new GameBoard(
+                [...allyPieces, ...enemyPieces].map((p) => {
+                  return createPieceInstance(p.player, p.pieceType, p.position, p.isSpy);
+                }),
+              ),
             );
           }
         },
@@ -177,6 +186,33 @@ export default function PlanningInterface() {
       const newPiece = createPieceInstance(player, type, { row, col }, isSpy);
       setAllyPieces((prev) => [...prev, newPiece]);
     } else {
+      if (!gameBoard) {
+        throw new Error('Game board not found');
+      }
+      for (const piece of allyPieces) {
+        if (piece.position.row === row && piece.position.col === col) {
+          const possibleNewPositions: Position[] = piece.getPossibleNewPositions(gameBoard);
+          setSelectedPieceState({
+            piece: piece,
+            possiblePositions: possibleNewPositions,
+          });
+          console.log(piece);
+          console.log(possibleNewPositions);
+          return;
+        }
+      }
+      if (selectedPieceState.piece) {
+        if (
+          selectedPieceState.possiblePositions.some((pos) => pos.row === row && pos.col === col)
+        ) {
+          console.log('Clicked on a possible position');
+        } else {
+          setSelectedPieceState({
+            piece: null,
+            possiblePositions: [],
+          });
+        }
+      }
     }
   };
 
@@ -240,6 +276,7 @@ export default function PlanningInterface() {
         allyPieces={allyPieces}
         enemyPieces={enemyPieces}
         isPlanningPhase={isPlanningPhase}
+        selectedPieceState={selectedPieceState}
         handleSquareClick={handleSquareClick}
       />
     </div>

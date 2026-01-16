@@ -43,3 +43,8 @@ export enum PlanningPhasePlacementMode {
   MASTER = 'MASTER',
   SPY = 'SPY',
 }
+
+export type SelectedPieceState = {
+  piece: PieceClass | null;
+  possiblePositions: Position[];
+};
