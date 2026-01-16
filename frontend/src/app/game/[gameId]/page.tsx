@@ -117,8 +117,8 @@ export default function PlanningInterface() {
             );
             setGameBoard(
               new GameBoard(
-                [...allyPieces, ...enemyPieces].map((p) => {
-                  return createPieceInstance(p.player, p.pieceType, p.position, p.isSpy);
+                piecesData.pieces.map((p) => {
+                  return createPieceInstance(p.player, p.piece_type, p.position, p.is_spy);
                 }),
               ),
             );
@@ -196,8 +196,6 @@ export default function PlanningInterface() {
             piece: piece,
             possiblePositions: possibleNewPositions,
           });
-          console.log(piece);
-          console.log(possibleNewPositions);
           return;
         }
       }

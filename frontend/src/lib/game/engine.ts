@@ -37,6 +37,7 @@ export class Dancer extends Piece {
   pieceType = pieceTypeEnum.enum.dancer;
 
   getPossibleNewPositions(gameBoard: GameBoard): Position[] {
+    console.log(gameBoard.board);
     const possibleMoves: Position[] = [];
     const { row, col } = this.position;
 
