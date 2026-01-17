@@ -58,7 +58,7 @@ export default function PlanningInterface() {
   });
   const [validationError, setValidationError] = useState<string | null>(null);
 
-  const isPlanningPhase = useMemo(() => enemyPieces.length === 0, [enemyPieces]);
+  const [isPlanningPhase, setIsPlanningPhase] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchPlayerNumber = async () => {
@@ -124,6 +124,7 @@ export default function PlanningInterface() {
                 }),
               ),
             );
+            setIsPlanningPhase(false)
           }
         },
       )
