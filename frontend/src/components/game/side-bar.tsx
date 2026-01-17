@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 
-import { AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
+import { CheckCircle2, Loader2 } from 'lucide-react';
 
 import { HandFistIcon } from '@/components/icons/lucide-hand-fist';
 import { HighHeelIcon } from '@/components/icons/lucide-lab-high-heel';
@@ -14,6 +14,7 @@ import { Card } from '@/components/ui/card';
 import { PIECE_LIMITS, PlanningPhasePlacementMode } from '@/lib/game/base';
 
 interface SidebarProps {
+  isPlanningPhase: boolean;
   pieceCounts: {
     DANCER: number;
     MASTER: number;
@@ -32,6 +33,7 @@ enum PlanningState {
 }
 
 export default function Sidebar({
+  isPlanningPhase,
   pieceCounts,
   planningPhasePlacementMode,
   validationError,
@@ -109,39 +111,38 @@ export default function Sidebar({
 
   return (
     <Card className="bg-muted/30 flex w-82 flex-col gap-6 p-6">
-      <h2 className="mb-2 text-center text-xl font-bold tracking-tight">Assemble your team</h2>
+      {isPlanningPhase ? (
+        <h2 className="mb-2 text-center text-xl font-bold tracking-tight">Assemble your team</h2>
+      ) : (
+        <h2 className="mb-2 text-center text-xl font-bold tracking-tight">Game in progress</h2>
+      )}
 
-      <div className="flex flex-col gap-3">
-        {dancerPlacementButton}
-        {masterPlacementButton}
-        {spyPlacementButton}
-      </div>
-
-      <div className="mt-auto space-y-4">
-        {validationError && (
-          <div className="text-destructive bg-destructive/10 animate-in fade-in slide-in-from-top-1 flex justify-center gap-2 rounded-md p-3 text-sm">
-            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-            <span>{validationError}</span>
+      {isPlanningPhase && (
+        <>
+          <div className="flex flex-col gap-3">
+            {dancerPlacementButton}
+            {masterPlacementButton}
+            {spyPlacementButton}
           </div>
-        )}
-        <Button
-          className="w-full shadow-lg"
-          size="lg"
-          disabled={planningState !== PlanningState.planning}
-          onClick={handleLockPlacement}
-        >
-          {planningState === PlanningState.initializing ? (
-            <Loader2 className="h-5 w-5 animate-spin" />
-          ) : planningState === PlanningState.locked ? (
-            <span className="flex items-center gap-2">
-              <CheckCircle2 className="h-5 w-5 text-green-500" />
-              Waiting for opponent to finish
-            </span>
-          ) : (
-            'Lock Placement'
-          )}
-        </Button>
-      </div>
+          <Button
+            className="w-full shadow-lg"
+            size="lg"
+            disabled={planningState !== PlanningState.planning}
+            onClick={handleLockPlacement}
+          >
+            {planningState === PlanningState.initializing ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : planningState === PlanningState.locked ? (
+              <span className="flex items-center gap-2">
+                <CheckCircle2 className="h-5 w-5 text-green-500" />
+                Waiting for opponent to finish
+              </span>
+            ) : (
+              'Lock Placement'
+            )}
+          </Button>
+        </>
+      )}
     </Card>
   );
 }

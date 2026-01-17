@@ -124,7 +124,7 @@ export default function PlanningInterface() {
                 }),
               ),
             );
-            setIsPlanningPhase(false)
+            setIsPlanningPhase(false);
           }
         },
       )
@@ -315,6 +315,7 @@ export default function PlanningInterface() {
   return (
     <div className="mx-auto flex h-[90vh] max-w-6xl flex-row gap-8 p-8">
       <Sidebar
+        isPlanningPhase={isPlanningPhase}
         pieceCounts={pieceCounts}
         planningPhasePlacementMode={planningPhasePlacementMode}
         validationError={validationError}
