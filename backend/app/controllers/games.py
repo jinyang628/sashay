@@ -6,6 +6,7 @@ from starlette.responses import JSONResponse
 
 from app.models.api.games.get_pieces import GetPiecesResponse
 from app.models.api.games.initialize import InitializeRequest
+from app.models.api.games.move_piece import MovePieceRequest, MovePieceResponse
 from app.services.games import GamesService
 from app.utils.errors import RoomNotFoundError
 
@@ -73,5 +74,33 @@ class GamesController:
                 log.exception("Error getting pieces for game %s: %s", game_id, e)
                 return GetPiecesResponse(
                     status_code=httpx.codes.INTERNAL_SERVER_ERROR,
+                    pieces=[],
+                )
+
+        @router.post(
+            "/pieces/move",
+        )
+        async def move_piece(input: MovePieceRequest) -> MovePieceResponse:
+            try:
+                log.info("Moving piece for game %s", input.game_id)
+                return await self.service.move_piece(
+                    game_id=input.game_id,
+                    piece=input.piece,
+                    new_position=input.new_position,
+                )
+            except RoomNotFoundError as e:
+                log.exception("Room not found for game %s", input.game_id)
+                return MovePieceResponse(
+                    status_code=httpx.codes.NOT_FOUND,
+                    captured_pieces=[],
+                    winner=None,
+                    pieces=[],
+                )
+            except Exception as e:
+                log.exception("Error moving piece for game %s: %s", input.game_id, e)
+                return MovePieceResponse(
+                    status_code=httpx.codes.INTERNAL_SERVER_ERROR,
+                    captured_pieces=[],
+                    winner=None,
                     pieces=[],
                 )

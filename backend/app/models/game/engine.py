@@ -2,7 +2,7 @@ import uuid
 from abc import abstractmethod
 from collections import deque
 from enum import StrEnum
-from typing import Literal, Optional
+from typing import Any, Literal, Optional
 
 from pydantic import BaseModel, Field
 
@@ -226,8 +226,21 @@ class Master(Piece):
         )
 
 
+def parse_piece(piece_data: dict[str, Any]) -> Piece:
+    """Parse a piece dict into either a Dancer or Master instance."""
+    if not isinstance(piece_data, dict):
+        raise ValueError(f"Expected dict, got {type(piece_data)}")
+    piece_type = piece_data.get("piece_type")
+    if piece_type == PieceType.DANCER:
+        return Dancer.model_validate(piece_data)
+    elif piece_type == PieceType.MASTER:
+        return Master.model_validate(piece_data)
+    else:
+        raise ValueError(f"Unknown piece type: {piece_type}")
+
+
 class GameEngine:
-    def __init__(self, pieces: list[Piece], player_1_ready: bool, player_2_ready: bool):
+    def __init__(self, pieces: list[Piece]):
         self.game_board = GameBoard(pieces=pieces)
         self.pieces = pieces
 
@@ -236,6 +249,14 @@ class GameEngine:
 
     def move_piece(self, piece: Piece, new_position: Position) -> None:
         original_position = piece.position
+        possible_new_positions: list[Position] = self.get_possible_new_positions(
+            piece=piece
+        )
+        if not any(
+            pos.row == new_position.row and pos.col == new_position.col
+            for pos in possible_new_positions
+        ):
+            raise ValueError(f"Invalid new position: {new_position}")
         piece.move(new_position=new_position)
         self.game_board.board[original_position.row][original_position.col] = None
         self.game_board.board[new_position.row][new_position.col] = piece

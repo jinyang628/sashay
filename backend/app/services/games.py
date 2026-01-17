@@ -1,9 +1,12 @@
 import logging
+from typing import Optional
 
 import httpx
 
 from app.models.api.games.get_pieces import GetPiecesResponse
-from app.models.game.engine import GameBoard, Piece
+from app.models.api.games.move_piece import MovePieceResponse
+from app.models.game.base import Player, Position
+from app.models.game.engine import GameBoard, GameEngine, Piece, parse_piece
 from app.services.database import DatabaseService
 from app.utils.errors import InvalidInitializationError, RoomNotFoundError
 
@@ -11,6 +14,37 @@ log = logging.getLogger(__name__)
 
 
 class GamesService:
+    async def move_piece(
+        self, game_id: str, piece: Piece, new_position: Position
+    ) -> MovePieceResponse:
+        raw_pieces = (await self.get_pieces(game_id=game_id)).pieces
+        curr_pieces: list[Piece] = [parse_piece(p) for p in raw_pieces]
+        game_engine = GameEngine(pieces=curr_pieces)
+        game_engine.move_piece(piece=piece, new_position=new_position)
+
+        client = await DatabaseService().get_client()
+        captured_pieces: list[Piece] = game_engine.process_potential_capture(
+            piece=piece, new_position=new_position
+        )
+        await client.table("games").update(
+            {"pieces": [p.model_dump() for p in game_engine.pieces]}
+        ).eq("game_id", game_id).execute()
+
+        winner: Optional[Player] = game_engine.process_potential_win()
+        if winner:
+            await client.table("rooms").update({"status": "completed"}).eq(
+                "game_id", game_id
+            ).execute()
+
+        return MovePieceResponse.model_validate(
+            {
+                "status_code": httpx.codes.OK,
+                "captured_pieces": captured_pieces,
+                "winner": winner.value if winner else None,
+                "pieces": game_engine.pieces,
+            }
+        )
+
     async def get_pieces(self, game_id: str) -> GetPiecesResponse:
         client = await DatabaseService().get_client()
         response = (

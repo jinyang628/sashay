@@ -4,8 +4,10 @@ import React, { useEffect, useMemo, useState } from 'react';
 
 import { getPieces } from '@/actions/game/get-pieces';
 import { initializePieces } from '@/actions/game/initialize';
+import { movePiece } from '@/actions/game/move-piece';
 import { getPlayerNumber } from '@/actions/room/get-player-number';
 import { gameIdAtom } from '@/state/game';
+import { StatusCodes } from 'http-status-codes';
 import { useAtomValue } from 'jotai';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -26,7 +28,7 @@ import {
   pieceTypeEnum,
   playerEnum,
 } from '@/lib/game/base';
-import { Dancer, GameBoard, Master, Piece } from '@/lib/game/engine';
+import { Dancer, GameBoard, GameEngine, Master, Piece } from '@/lib/game/engine';
 import { getCurrentUserId, supabase } from '@/lib/supabase';
 
 const createPieceInstance = (
@@ -47,7 +49,7 @@ export default function PlanningInterface() {
   const gameId = useAtomValue(gameIdAtom);
   const [allyPieces, setAllyPieces] = useState<Piece[]>([]);
   const [enemyPieces, setEnemyPieces] = useState<Piece[]>([]);
-  const [gameBoard, setGameBoard] = useState<GameBoard | null>(null);
+  const [gameEngine, setGameEngine] = useState<GameEngine | null>(null);
   const [planningPhasePlacementMode, setPlanningPhasePlacementMode] =
     useState<PlanningPhasePlacementMode>(PlanningPhasePlacementMode.DANCER);
   const [selectedPieceState, setSelectedPieceState] = useState<SelectedPieceState>({
@@ -115,8 +117,8 @@ export default function PlanningInterface() {
                   );
                 }),
             );
-            setGameBoard(
-              new GameBoard(
+            setGameEngine(
+              new GameEngine(
                 piecesData.pieces.map((p) => {
                   return createPieceInstance(p.player, p.piece_type, p.position, p.is_spy);
                 }),
@@ -145,13 +147,13 @@ export default function PlanningInterface() {
     };
   }, [allyPieces]);
 
-  const handleSquareClick = (row: number, col: number) => {
+  const handleSquareClick = async (row: number, col: number) => {
     setValidationError(null);
 
     if (player === null) {
       return;
     }
-
+    console.log('isPlanningPhase', isPlanningPhase);
     if (isPlanningPhase) {
       // Remove piece if exists
       const existingIndex = allyPieces.findIndex(
@@ -186,12 +188,12 @@ export default function PlanningInterface() {
       const newPiece = createPieceInstance(player, type, { row, col }, isSpy);
       setAllyPieces((prev) => [...prev, newPiece]);
     } else {
-      if (!gameBoard) {
-        throw new Error('Game board not found');
+      if (!gameEngine) {
+        throw new Error('Game engine not found');
       }
       for (const piece of allyPieces) {
         if (piece.position.row === row && piece.position.col === col) {
-          const possibleNewPositions: Position[] = piece.getPossibleNewPositions(gameBoard);
+          const possibleNewPositions: Position[] = gameEngine.getPossibleNewPositions(piece);
           setSelectedPieceState({
             piece: {
               id: piece.id,
@@ -207,14 +209,59 @@ export default function PlanningInterface() {
       }
       if (selectedPieceState.piece) {
         if (
-          selectedPieceState.possiblePositions.some((pos) => pos.row === row && pos.col === col)
+          !selectedPieceState.possiblePositions.some((pos) => pos.row === row && pos.col === col)
         ) {
-        } else {
           setSelectedPieceState({
             piece: null,
             possiblePositions: [],
           });
         }
+
+        const fullPiece = allyPieces.find((p) => p.id === selectedPieceState.piece?.id);
+        if (!fullPiece) {
+          setValidationError('Selected piece not found.');
+          setSelectedPieceState({
+            piece: null,
+            possiblePositions: [],
+          });
+          return;
+        }
+        const response = await movePiece(
+          gameId,
+          {
+            id: fullPiece.id,
+            player: fullPiece.player,
+            piece_type: fullPiece.pieceType,
+            position: fullPiece.position,
+            is_spy: fullPiece.isSpy,
+          },
+          { row, col },
+        );
+        if (response.status_code !== StatusCodes.OK) {
+          setValidationError('Failed to move piece.');
+          return;
+        }
+        setAllyPieces(
+          response.pieces
+            .filter((p) => p.player === player)
+            .map((p) => {
+              return createPieceInstance(p.player, p.piece_type, p.position, p.is_spy);
+            }),
+        );
+        setEnemyPieces(
+          response.captured_pieces
+            .filter((p) => p.player !== player)
+            .map((p) => {
+              return createPieceInstance(p.player, p.piece_type, p.position, p.is_spy);
+            }),
+        );
+        setGameEngine(
+          new GameEngine(
+            response.pieces.map((p) => {
+              return createPieceInstance(p.player, p.piece_type, p.position, p.is_spy);
+            }),
+          ),
+        );
       }
     }
   };
