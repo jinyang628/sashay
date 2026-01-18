@@ -105,7 +105,7 @@ export default function PlanningInterface() {
         async (payload) => {
           const updatedRoom = payload.new;
           if (updatedRoom.status === roomStatusEnum.enum.active) {
-            await fetchPiecesPositionAndSetState();
+            await fetchPiecesPositionAndSetState(player, 0);
             setIsPlanningPhase(false);
           }
         },
@@ -140,7 +140,7 @@ export default function PlanningInterface() {
           const turnChanged = oldGame && oldGame.turn !== updatedGame.turn;
 
           if (updatedGame.status === roomStatusEnum.enum.active && turnChanged) {
-            await fetchPiecesPositionAndSetState();
+            await fetchPiecesPositionAndSetState(player, updatedGame.turn);
           }
         },
       )
@@ -270,6 +270,8 @@ export default function PlanningInterface() {
         );
         setGameEngine(
           new GameEngine(
+            player,
+            response.turn,
             response.pieces.map((p) => {
               return createPieceInstance(p.id, p.player, p.piece_type, p.position, p.is_spy);
             }),
@@ -316,7 +318,7 @@ export default function PlanningInterface() {
     }
   };
 
-  const fetchPiecesPositionAndSetState = async () => {
+  const fetchPiecesPositionAndSetState = async (player: Player, turn: number) => {
     const piecesData = await getPieces(gameId);
     setAllyPieces(
       piecesData.pieces
@@ -340,6 +342,8 @@ export default function PlanningInterface() {
     );
     setGameEngine(
       new GameEngine(
+        player,
+        turn,
         piecesData.pieces.map((p) => {
           return createPieceInstance(p.id, p.player, p.piece_type, p.position, p.is_spy);
         }),

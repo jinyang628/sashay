@@ -8,7 +8,9 @@ from app.models.api.games.move_piece import MovePieceResponse
 from app.models.game.base import Player, Position
 from app.models.game.engine import GameBoard, GameEngine, Piece, parse_piece
 from app.services.database import DatabaseService
-from app.utils.errors import InvalidInitializationError, RoomNotFoundError
+from app.utils.errors import (InvalidInitializationError, NotPlayerTurnError,
+                              RoomNotFoundError)
+from app.utils.game import is_player_turn
 
 log = logging.getLogger(__name__)
 
@@ -17,6 +19,31 @@ class GamesService:
     async def move_piece(
         self, game_id: str, piece: Piece, new_position: Position
     ) -> MovePieceResponse:
+        client = await DatabaseService().get_client()
+        response = (
+            await client.table("games").select("turn").eq("game_id", game_id).execute()
+        )
+        if not response.data:
+            raise RoomNotFoundError(
+                status_code=httpx.codes.NOT_FOUND,
+                detail=f"Room not found",
+            )
+        if (
+            not response.data[0]
+            or not isinstance(response.data[0], dict)
+            or "turn" not in response.data[0]
+            or not isinstance(response.data[0]["turn"], int)
+        ):
+            raise Exception(
+                f"No 'turn' key of type int found in existing game data for game {game_id}"
+            )
+        turn: int = response.data[0]["turn"]
+        if not is_player_turn(player=piece.player, turn=turn):
+            raise NotPlayerTurnError(
+                status_code=httpx.codes.BAD_REQUEST,
+                detail=f"It's not {piece.player.value}'s turn",
+            )
+
         raw_pieces = (await self.get_pieces(game_id=game_id)).pieces
         curr_pieces: list[Piece] = [parse_piece(p) for p in raw_pieces]
         game_engine = GameEngine(pieces=curr_pieces)
@@ -26,12 +53,13 @@ class GamesService:
 
         game_engine.move_piece(piece=matching_piece, new_position=new_position)
 
-        client = await DatabaseService().get_client()
         captured_pieces: list[Piece] = game_engine.process_potential_capture(
             piece=matching_piece, new_position=new_position
         )
+
+        turn += 1
         await client.table("games").update(
-            {"pieces": [p.model_dump() for p in game_engine.pieces]}
+            {"pieces": [p.model_dump() for p in game_engine.pieces], "turn": turn}
         ).eq("game_id", game_id).execute()
 
         winner: Optional[Player] = game_engine.process_potential_win()
@@ -46,6 +74,7 @@ class GamesService:
                 "captured_pieces": captured_pieces,
                 "winner": winner.value if winner else None,
                 "pieces": game_engine.pieces,
+                "turn": turn,
             }
         )
 

@@ -155,8 +155,22 @@ export class Master extends Piece {
 export class GameEngine {
   public gameBoard: GameBoard;
 
-  constructor(public pieces: Piece[]) {
+  constructor(
+    public player: Player,
+    public turn: number,
+    public pieces: Piece[],
+  ) {
+    this.player = player;
+    this.turn = turn;
     this.gameBoard = new GameBoard(pieces);
+  }
+
+  isPlayerTurn(): boolean {
+    if (this.player === playerEnum.enum.player_one) {
+      return this.turn % 2 === 0;
+    } else {
+      return this.turn % 2 === 1;
+    }
   }
 
   getPossibleNewPositions(piece: Piece): Position[] {

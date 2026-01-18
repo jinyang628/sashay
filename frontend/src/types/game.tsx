@@ -34,6 +34,7 @@ export const movePieceResponseSchema = z.object({
   captured_pieces: z.array(pieceSchema),
   winner: playerEnum.nullable(),
   pieces: z.array(pieceSchema),
+  turn: z.number(),
 });
 
 export type MovePieceResponse = z.infer<typeof movePieceResponseSchema>;

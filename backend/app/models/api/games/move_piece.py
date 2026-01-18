@@ -20,3 +20,4 @@ class MovePieceResponse(BaseModel):
     captured_pieces: list[Piece]
     winner: Optional[Player]
     pieces: list[Piece]
+    turn: int
