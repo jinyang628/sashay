@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 import Board from '@/components/game/board';
 import Sidebar from '@/components/game/side-bar';
 
+import { MovePieceResponse } from '@/types/game';
 import { roomStatusEnum } from '@/types/room';
 
 import { SelectedPieceState } from '@/lib/game/base';
@@ -238,7 +239,7 @@ export default function PlanningInterface() {
           });
           return;
         }
-        const response = await movePiece(
+        const response: MovePieceResponse = await movePiece(
           gameId,
           {
             id: fullPiece.id,
@@ -277,6 +278,10 @@ export default function PlanningInterface() {
             }),
           ),
         );
+        setSelectedPieceState({
+          piece: null,
+          possiblePositions: [],
+        });
       }
     }
   };
@@ -366,6 +371,7 @@ export default function PlanningInterface() {
         pieceCounts={pieceCounts}
         planningPhasePlacementMode={planningPhasePlacementMode}
         validationError={validationError}
+        isPlayerTurn={gameEngine?.isPlayerTurn() ?? false}
         onPlacementModeButtonClick={setPlanningPhasePlacementMode}
         onLockPlacementClick={onLockPlacementClick}
       />
@@ -376,6 +382,7 @@ export default function PlanningInterface() {
         enemyPieces={enemyPieces}
         isPlanningPhase={isPlanningPhase}
         selectedPieceState={selectedPieceState}
+        isPlayerTurn={gameEngine?.isPlayerTurn() ?? false}
         handleSquareClick={handleSquareClick}
       />
     </div>

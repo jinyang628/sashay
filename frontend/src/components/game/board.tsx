@@ -15,6 +15,7 @@ interface GameBoardProps {
   enemyPieces: Piece[];
   isPlanningPhase: boolean;
   selectedPieceState: SelectedPieceState;
+  isPlayerTurn: boolean;
   handleSquareClick: (row: number, col: number) => void;
 }
 
@@ -24,6 +25,7 @@ export default function Board({
   enemyPieces,
   isPlanningPhase,
   selectedPieceState,
+  isPlayerTurn,
   handleSquareClick,
 }: GameBoardProps) {
   const coordinateLabel = (row: number, col: number) => (
@@ -57,10 +59,11 @@ export default function Board({
             const isSelectedPiece =
               selectedPieceState.piece?.position.row === row &&
               selectedPieceState.piece?.position.col === col;
+            const isClickable = isPlanningPhase || isPlayerTurn;
             return (
               <div
                 key={`${row}-${col}`}
-                onClick={() => handleSquareClick(row, col)}
+                onClick={isClickable ? () => handleSquareClick(row, col) : undefined}
                 className={cn(
                   'group relative flex cursor-pointer items-center justify-center transition-all',
                   isSelectedPiece ? 'bg-green-400' : isLight ? 'bg-slate-100' : 'bg-slate-200',
@@ -68,7 +71,7 @@ export default function Board({
                   !isPlayerSide &&
                     isPlanningPhase &&
                     'bg-stripes-muted cursor-not-allowed opacity-30',
-                  'hover:ring-primary/50 hover:z-10 hover:ring-2',
+                  isClickable && 'hover:ring-primary/50 hover:z-10 hover:ring-2',
                 )}
               >
                 {coordinateLabel(row, col)}

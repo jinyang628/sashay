@@ -22,6 +22,7 @@ interface SidebarProps {
   };
   planningPhasePlacementMode: PlanningPhasePlacementMode;
   validationError: string | null;
+  isPlayerTurn: boolean;
   onPlacementModeButtonClick: (mode: PlanningPhasePlacementMode) => void;
   onLockPlacementClick: () => Promise<boolean>;
 }
@@ -37,6 +38,7 @@ export default function Sidebar({
   pieceCounts,
   planningPhasePlacementMode,
   validationError,
+  isPlayerTurn,
   onPlacementModeButtonClick,
   onLockPlacementClick,
 }: SidebarProps) {
@@ -113,7 +115,9 @@ export default function Sidebar({
       {isPlanningPhase ? (
         <h2 className="mb-2 text-center text-xl font-bold tracking-tight">Assemble your team</h2>
       ) : (
-        <h2 className="mb-2 text-center text-xl font-bold tracking-tight">Game in progress</h2>
+        <h2 className="mb-2 text-center text-xl font-bold tracking-tight">
+          {isPlayerTurn ? 'Your turn' : "Opponent's turn"}
+        </h2>
       )}
 
       {isPlanningPhase && (
@@ -122,6 +126,7 @@ export default function Sidebar({
             {dancerPlacementButton}
             {masterPlacementButton}
             {spyPlacementButton}
+            {validationError && <p className="text-red-500">{validationError}</p>}
           </div>
           <Button
             className="w-full shadow-lg"
