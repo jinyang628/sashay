@@ -21,7 +21,6 @@ export async function movePiece(
       `${process.env.SERVER_BASE_URL}/api/v1/games/pieces/move`,
       request,
     );
-    console.log('Response:', response.data);
     return response.data;
   } catch (error) {
     console.error('Error moving piece:', error);

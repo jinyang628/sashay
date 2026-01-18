@@ -16,10 +16,10 @@ export class GameBoard {
 }
 
 export abstract class Piece {
-  public id: string = crypto.randomUUID();
   public abstract pieceType: PieceType;
 
   constructor(
+    public id: string,
     public player: Player,
     public position: Position,
     public isSpy: boolean,

@@ -32,14 +32,15 @@ import { Dancer, GameBoard, GameEngine, Master, Piece } from '@/lib/game/engine'
 import { getCurrentUserId, supabase } from '@/lib/supabase';
 
 const createPieceInstance = (
+  id: string,
   player: Player,
   type: PieceType,
   pos: Position,
   isSpy: boolean,
 ): Piece => {
   return type === pieceTypeEnum.enum.dancer
-    ? new Dancer(player, pos, isSpy)
-    : new Master(player, pos, isSpy);
+    ? new Dancer(id, player, pos, isSpy)
+    : new Master(id, player, pos, isSpy);
 };
 
 export default function PlanningInterface() {
@@ -104,35 +105,46 @@ export default function PlanningInterface() {
         async (payload) => {
           const updatedRoom = payload.new;
           if (updatedRoom.status === roomStatusEnum.enum.active) {
-            const piecesData = await getPieces(gameId);
-            setEnemyPieces(
-              piecesData.pieces
-                .filter((p) => p.player !== player)
-                .map((p) => {
-                  return createPieceInstance(
-                    p.player,
-                    p.piece_type,
-                    { row: p.position.row, col: p.position.col },
-                    p.is_spy,
-                  );
-                }),
-            );
-            setGameEngine(
-              new GameEngine(
-                piecesData.pieces.map((p) => {
-                  return createPieceInstance(p.player, p.piece_type, p.position, p.is_spy);
-                }),
-              ),
-            );
+            await fetchPiecesPositionAndSetState();
             setIsPlanningPhase(false);
           }
         },
       )
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          console.log('Successfully listening for room updates');
-        }
-      });
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [gameId, player]);
+
+  useEffect(() => {
+    if (!gameId || !player) return;
+
+    if (isPlanningPhase) {
+      return;
+    }
+
+    const channel = supabase
+      .channel(`room-${gameId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'games',
+          filter: `game_id=eq.${gameId}`,
+        },
+        async (payload) => {
+          const updatedGame = payload.new;
+          const oldGame = payload.old;
+          const turnChanged = oldGame && oldGame.turn !== updatedGame.turn;
+
+          if (updatedGame.status === roomStatusEnum.enum.active && turnChanged) {
+            await fetchPiecesPositionAndSetState();
+          }
+        },
+      )
+      .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
@@ -154,7 +166,6 @@ export default function PlanningInterface() {
     if (player === null) {
       return;
     }
-    console.log('isPlanningPhase', isPlanningPhase);
     if (isPlanningPhase) {
       // Remove piece if exists
       const existingIndex = allyPieces.findIndex(
@@ -186,7 +197,7 @@ export default function PlanningInterface() {
           : pieceTypeEnum.enum.dancer;
       const isSpy = planningPhasePlacementMode === PlanningPhasePlacementMode.SPY;
 
-      const newPiece = createPieceInstance(player, type, { row, col }, isSpy);
+      const newPiece = createPieceInstance(crypto.randomUUID(), player, type, { row, col }, isSpy);
       setAllyPieces((prev) => [...prev, newPiece]);
     } else {
       if (!gameEngine) {
@@ -242,24 +253,25 @@ export default function PlanningInterface() {
           setValidationError('Failed to move piece.');
           return;
         }
+        console.log(response);
         setAllyPieces(
           response.pieces
             .filter((p) => p.player === player)
             .map((p) => {
-              return createPieceInstance(p.player, p.piece_type, p.position, p.is_spy);
+              return createPieceInstance(p.id, p.player, p.piece_type, p.position, p.is_spy);
             }),
         );
         setEnemyPieces(
-          response.captured_pieces
+          response.pieces
             .filter((p) => p.player !== player)
             .map((p) => {
-              return createPieceInstance(p.player, p.piece_type, p.position, p.is_spy);
+              return createPieceInstance(p.id, p.player, p.piece_type, p.position, p.is_spy);
             }),
         );
         setGameEngine(
           new GameEngine(
             response.pieces.map((p) => {
-              return createPieceInstance(p.player, p.piece_type, p.position, p.is_spy);
+              return createPieceInstance(p.id, p.player, p.piece_type, p.position, p.is_spy);
             }),
           ),
         );
@@ -302,6 +314,37 @@ export default function PlanningInterface() {
       console.error('Error initializing pieces:', error);
       return false;
     }
+  };
+
+  const fetchPiecesPositionAndSetState = async () => {
+    const piecesData = await getPieces(gameId);
+    setAllyPieces(
+      piecesData.pieces
+        .filter((p) => p.player === player)
+        .map((p) => {
+          return createPieceInstance(p.id, p.player, p.piece_type, p.position, p.is_spy);
+        }),
+    );
+    setEnemyPieces(
+      piecesData.pieces
+        .filter((p) => p.player !== player)
+        .map((p) => {
+          return createPieceInstance(
+            p.id,
+            p.player,
+            p.piece_type,
+            { row: p.position.row, col: p.position.col },
+            p.is_spy,
+          );
+        }),
+    );
+    setGameEngine(
+      new GameEngine(
+        piecesData.pieces.map((p) => {
+          return createPieceInstance(p.id, p.player, p.piece_type, p.position, p.is_spy);
+        }),
+      ),
+    );
   };
 
   if (isLoading) {

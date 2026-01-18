@@ -286,8 +286,8 @@ class GameEngine:
         """
         Determine if either player has won the game.
 
-        - Player A (player 1) wins if they have a spy Dancer on the top row (index 0).
-        - Player B (player 2) wins if they have a spy Dancer on the bottom row (index ROWS - 1).
+        - Player B (player 2) wins if they have a spy Dancer on the top row (index 0).
+        - Player A (player 1) wins if they have a spy Dancer on the bottom row (index ROWS - 1).
         - Returns None if there is currently no winner.
         """
         top_row_index = 0
@@ -296,9 +296,9 @@ class GameEngine:
             if (
                 isinstance(piece, Dancer)
                 and piece.is_spy
-                and piece.player == Player.PLAYER_ONE
+                and piece.player == Player.PLAYER_TWO
             ):
-                return Player.PLAYER_ONE
+                return Player.PLAYER_TWO
 
         bottom_row_index = ROWS - 1
         for col in range(COLS):
@@ -306,8 +306,8 @@ class GameEngine:
             if (
                 isinstance(piece, Dancer)
                 and piece.is_spy
-                and piece.player == Player.PLAYER_TWO
+                and piece.player == Player.PLAYER_ONE
             ):
-                return Player.PLAYER_TWO
+                return Player.PLAYER_ONE
 
         return None

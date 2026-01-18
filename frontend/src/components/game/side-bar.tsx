@@ -78,7 +78,6 @@ export default function Sidebar({
       className="h-14 justify-between"
       onClick={() => onPlacementModeButtonClick(PlanningPhasePlacementMode.MASTER)}
     >
-      Mode{' '}
       <div className="flex items-center gap-3">
         <HandFistIcon className="h-5 w-5" />
         <div className="flex flex-col items-start leading-tight">

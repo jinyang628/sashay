@@ -20,11 +20,15 @@ class GamesService:
         raw_pieces = (await self.get_pieces(game_id=game_id)).pieces
         curr_pieces: list[Piece] = [parse_piece(p) for p in raw_pieces]
         game_engine = GameEngine(pieces=curr_pieces)
-        game_engine.move_piece(piece=piece, new_position=new_position)
+        matching_piece = next((p for p in game_engine.pieces if p.id == piece.id), None)
+        if matching_piece is None:
+            raise ValueError(f"Piece with id {piece.id} not found in game")
+
+        game_engine.move_piece(piece=matching_piece, new_position=new_position)
 
         client = await DatabaseService().get_client()
         captured_pieces: list[Piece] = game_engine.process_potential_capture(
-            piece=piece, new_position=new_position
+            piece=matching_piece, new_position=new_position
         )
         await client.table("games").update(
             {"pieces": [p.model_dump() for p in game_engine.pieces]}
