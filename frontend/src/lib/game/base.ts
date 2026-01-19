@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { GameEngine, Piece } from './engine';
+
 export const ROWS = 8;
 export const COLS = 6;
 
@@ -47,4 +49,11 @@ export enum PlanningPhasePlacementMode {
 export type SelectedPieceState = {
   piece: Piece | null;
   possiblePositions: Position[];
+};
+
+export type GameState = {
+  allyPieces: Piece[];
+  enemyPieces: Piece[];
+  capturedPieces: Piece[];
+  gameEngine: GameEngine | null;
 };
