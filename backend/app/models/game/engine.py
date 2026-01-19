@@ -51,6 +51,9 @@ class GameBoard:
     def remove_piece(self, piece: "Piece") -> None:
         self.board[piece.position.row][piece.position.col] = None
 
+    def get_pieces(self) -> list["Piece"]:
+        return [piece for row in self.board for piece in row if piece is not None]
+
 
 class PieceType(StrEnum):
     DANCER = "dancer"
@@ -242,7 +245,6 @@ def parse_piece(piece_data: dict[str, Any]) -> Piece:
 class GameEngine:
     def __init__(self, pieces: list[Piece]):
         self.game_board = GameBoard(pieces=pieces)
-        self.pieces = pieces
 
     def get_possible_new_positions(self, piece: Piece) -> list[Position]:
         return piece.get_possible_new_positions(game_board=self.game_board)
@@ -261,9 +263,7 @@ class GameEngine:
         self.game_board.board[original_position.row][original_position.col] = None
         self.game_board.board[new_position.row][new_position.col] = piece
 
-    def process_potential_capture(
-        self, piece: Piece, new_position: Position
-    ) -> list[Piece]:
+    def process_potential_capture(self, new_position: Position) -> list[Piece]:
         captured_pieces = []
         for i in range(new_position.row - 1, new_position.row + 2):
             for j in range(new_position.col - 1, new_position.col + 2):
@@ -274,10 +274,8 @@ class GameEngine:
                     continue
                 if not isinstance(neighbor_piece, Piece):
                     raise TypeError(f"Expected Piece, got {type(neighbor_piece)}")
-                if (
-                    neighbor_piece.player != piece.player
-                    and neighbor_piece.is_surrounded(game_board=self.game_board)
-                ):
+                if neighbor_piece.is_surrounded(game_board=self.game_board):
+
                     self.game_board.remove_piece(piece=neighbor_piece)
                     captured_pieces.append(neighbor_piece)
         return captured_pieces

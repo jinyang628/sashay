@@ -47,19 +47,18 @@ class GamesService:
         raw_pieces = (await self.get_pieces(game_id=game_id)).pieces
         curr_pieces: list[Piece] = [parse_piece(p) for p in raw_pieces]
         game_engine = GameEngine(pieces=curr_pieces)
-        matching_piece = next((p for p in game_engine.pieces if p.id == piece.id), None)
+        matching_piece = next((p for p in curr_pieces if p.id == piece.id), None)
         if matching_piece is None:
             raise ValueError(f"Piece with id {piece.id} not found in game")
 
         game_engine.move_piece(piece=matching_piece, new_position=new_position)
-
         captured_pieces: list[Piece] = game_engine.process_potential_capture(
-            piece=matching_piece, new_position=new_position
+            new_position=new_position
         )
-
+        updated_pieces: list[Piece] = game_engine.game_board.get_pieces()
         turn += 1
         await client.table("games").update(
-            {"pieces": [p.model_dump() for p in game_engine.pieces], "turn": turn}
+            {"pieces": [p.model_dump() for p in updated_pieces], "turn": turn}
         ).eq("game_id", game_id).execute()
 
         winner: Optional[Player] = game_engine.process_potential_win()
@@ -73,7 +72,7 @@ class GamesService:
                 "status_code": httpx.codes.OK,
                 "captured_pieces": captured_pieces,
                 "winner": winner.value if winner else None,
-                "pieces": game_engine.pieces,
+                "pieces": updated_pieces,
                 "turn": turn,
             }
         )
