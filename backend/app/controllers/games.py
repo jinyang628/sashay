@@ -95,6 +95,7 @@ class GamesController:
                     captured_pieces=[],
                     winner=None,
                     pieces=[],
+                    turn=-1,
                 )
             except Exception as e:
                 log.exception("Error moving piece for game %s: %s", input.game_id, e)
@@ -103,4 +104,5 @@ class GamesController:
                     captured_pieces=[],
                     winner=None,
                     pieces=[],
+                    turn=-1,
                 )

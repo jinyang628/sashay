@@ -44,11 +44,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
           }
         },
       )
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          console.log('Successfully listening for room updates');
-        }
-      });
+      .subscribe();
 
     return () => {
       supabase.removeChannel(channel);

@@ -29,7 +29,6 @@ export default function JoinRoomGroup() {
     try {
       const response: JoinRoomResponse = await joinRoom(gameId, await getCurrentUserId());
       if (response.status_code === StatusCodes.OK) {
-        console.log(`Room joined successfully: ${gameId}`);
         setGameIdAtom(gameId);
         router.push(`/game/${gameId}`);
       } else {

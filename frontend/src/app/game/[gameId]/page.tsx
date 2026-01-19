@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { getPieces } from '@/actions/game/get-pieces';
 import { initializePieces } from '@/actions/game/initialize';
@@ -62,6 +62,42 @@ export default function PlanningInterface() {
 
   const [isPlanningPhase, setIsPlanningPhase] = useState<boolean>(true);
 
+  const fetchPiecesPositionAndSetState = useCallback(
+    async (player: Player, turn: number) => {
+      const piecesData = await getPieces(gameId);
+      setAllyPieces(
+        piecesData.pieces
+          .filter((p) => p.player === player)
+          .map((p) => {
+            return createPieceInstance(p.id, p.player, p.piece_type, p.position, p.is_spy);
+          }),
+      );
+      setEnemyPieces(
+        piecesData.pieces
+          .filter((p) => p.player !== player)
+          .map((p) => {
+            return createPieceInstance(
+              p.id,
+              p.player,
+              p.piece_type,
+              { row: p.position.row, col: p.position.col },
+              p.is_spy,
+            );
+          }),
+      );
+      setGameEngine(
+        new GameEngine(
+          player,
+          turn,
+          piecesData.pieces.map((p) => {
+            return createPieceInstance(p.id, p.player, p.piece_type, p.position, p.is_spy);
+          }),
+        ),
+      );
+    },
+    [gameId],
+  );
+
   useEffect(() => {
     const fetchPlayerNumber = async () => {
       try {
@@ -116,7 +152,7 @@ export default function PlanningInterface() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [gameId, player]);
+  }, [gameId, player, fetchPiecesPositionAndSetState]);
 
   useEffect(() => {
     if (!gameId || !player) return;
@@ -126,7 +162,7 @@ export default function PlanningInterface() {
     }
 
     const channel = supabase
-      .channel(`room-${gameId}`)
+      .channel(`games-${gameId}`)
       .on(
         'postgres_changes',
         {
@@ -138,9 +174,7 @@ export default function PlanningInterface() {
         async (payload) => {
           const updatedGame = payload.new;
           const oldGame = payload.old;
-          const turnChanged = oldGame && oldGame.turn !== updatedGame.turn;
-
-          if (updatedGame.status === roomStatusEnum.enum.active && turnChanged) {
+          if (updatedGame.turn !== oldGame.turn) {
             await fetchPiecesPositionAndSetState(player, updatedGame.turn);
           }
         },
@@ -150,7 +184,7 @@ export default function PlanningInterface() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [gameId, player]);
+  }, [gameId, player, isPlanningPhase, fetchPiecesPositionAndSetState]);
 
   const pieceCounts = useMemo(() => {
     return {
@@ -254,7 +288,6 @@ export default function PlanningInterface() {
           setValidationError('Failed to move piece.');
           return;
         }
-        console.log(response);
         setAllyPieces(
           response.pieces
             .filter((p) => p.player === player)
@@ -321,39 +354,6 @@ export default function PlanningInterface() {
       console.error('Error initializing pieces:', error);
       return false;
     }
-  };
-
-  const fetchPiecesPositionAndSetState = async (player: Player, turn: number) => {
-    const piecesData = await getPieces(gameId);
-    setAllyPieces(
-      piecesData.pieces
-        .filter((p) => p.player === player)
-        .map((p) => {
-          return createPieceInstance(p.id, p.player, p.piece_type, p.position, p.is_spy);
-        }),
-    );
-    setEnemyPieces(
-      piecesData.pieces
-        .filter((p) => p.player !== player)
-        .map((p) => {
-          return createPieceInstance(
-            p.id,
-            p.player,
-            p.piece_type,
-            { row: p.position.row, col: p.position.col },
-            p.is_spy,
-          );
-        }),
-    );
-    setGameEngine(
-      new GameEngine(
-        player,
-        turn,
-        piecesData.pieces.map((p) => {
-          return createPieceInstance(p.id, p.player, p.piece_type, p.position, p.is_spy);
-        }),
-      ),
-    );
   };
 
   if (isLoading) {
