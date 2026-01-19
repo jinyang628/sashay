@@ -58,7 +58,11 @@ class GamesService:
         updated_pieces: list[Piece] = game_engine.game_board.get_pieces()
         turn += 1
         await client.table("games").update(
-            {"pieces": [p.model_dump() for p in updated_pieces], "turn": turn}
+            {
+                "pieces": [p.model_dump() for p in updated_pieces],
+                "captured_pieces": [p.model_dump() for p in captured_pieces],
+                "turn": turn,
+            }
         ).eq("game_id", game_id).execute()
 
         winner: Optional[Player] = game_engine.process_potential_win()
@@ -81,7 +85,7 @@ class GamesService:
         client = await DatabaseService().get_client()
         response = (
             await client.table("games")
-            .select("pieces")
+            .select("pieces", "captured_pieces")
             .eq("game_id", game_id)
             .execute()
         )
@@ -104,9 +108,20 @@ class GamesService:
             )
         pieces = response.data[0]["pieces"]
 
+        if "captured_pieces" not in response.data[0]:
+            raise Exception(
+                f"No 'captured_pieces' key found in existing game data for game {game_id}"
+            )
+        if not isinstance(response.data[0]["captured_pieces"], list):
+            raise Exception(
+                f"'captured_pieces' key is not a list in existing game data for game {game_id}"
+            )
+        captured_pieces = response.data[0]["captured_pieces"]
+
         return GetPiecesResponse(
             status_code=httpx.codes.OK,
             pieces=pieces,
+            captured_pieces=captured_pieces,
         )
 
     async def initialize(self, game_id: str, pieces: list[Piece]) -> None:
@@ -130,6 +145,7 @@ class GamesService:
                 {
                     "game_id": game_id,
                     "pieces": [piece.model_dump() for piece in pieces],
+                    "captured_pieces": [],
                 }
             ).execute()
             return

@@ -69,12 +69,14 @@ class GamesController:
                 return GetPiecesResponse(
                     status_code=httpx.codes.NOT_FOUND,
                     pieces=[],
+                    captured_pieces=[],
                 )
             except Exception as e:
                 log.exception("Error getting pieces for game %s: %s", game_id, e)
                 return GetPiecesResponse(
                     status_code=httpx.codes.INTERNAL_SERVER_ERROR,
                     pieces=[],
+                    captured_pieces=[],
                 )
 
         @router.post(

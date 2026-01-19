@@ -17,6 +17,7 @@ export type GetPiecesRequest = z.infer<typeof getPiecesRequestSchema>;
 
 export const getPiecesResponseSchema = z.object({
   pieces: z.array(pieceSchema),
+  captured_pieces: z.array(pieceSchema),
 });
 
 export type GetPiecesResponse = z.infer<typeof getPiecesResponseSchema>;

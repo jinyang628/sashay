@@ -55,6 +55,7 @@ export default function PlanningInterface() {
     capturedPieces: [],
     gameEngine: null,
   });
+  console.log(gameState);
 
   const [planningPhasePlacementMode, setPlanningPhasePlacementMode] =
     useState<PlanningPhasePlacementMode>(PlanningPhasePlacementMode.DANCER);
@@ -121,7 +122,9 @@ export default function PlanningInterface() {
                 .map((p) =>
                   createPieceInstance(p.id, p.player, p.piece_type, p.position, p.is_spy),
                 ),
-              capturedPieces: [],
+              capturedPieces: piecesData.captured_pieces.map((p) =>
+                createPieceInstance(p.id, p.player, p.piece_type, p.position, p.is_spy),
+              ),
               gameEngine: new GameEngine(
                 player,
                 0,
@@ -169,7 +172,9 @@ export default function PlanningInterface() {
             setGameState({
               allyPieces: mappedPieces.filter((p) => p.player === player),
               enemyPieces: mappedPieces.filter((p) => p.player !== player),
-              capturedPieces: [],
+              capturedPieces: piecesData.captured_pieces.map((p) =>
+                createPieceInstance(p.id, p.player, p.piece_type, p.position, p.is_spy),
+              ),
               gameEngine: new GameEngine(player, updatedGame.turn, mappedPieces),
             });
           }
@@ -364,8 +369,7 @@ export default function PlanningInterface() {
 
       <Board
         PLAYER_SIDE_ROWS={playerSideRows}
-        allyPieces={gameState.allyPieces}
-        enemyPieces={gameState.enemyPieces}
+        gameState={gameState}
         isPlanningPhase={isPlanningPhase}
         selectedPieceState={selectedPieceState}
         isPlayerTurn={gameState.gameEngine?.isPlayerTurn() ?? false}

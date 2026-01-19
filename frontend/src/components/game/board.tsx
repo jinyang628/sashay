@@ -4,15 +4,13 @@ import { HandFistIcon } from '@/components/icons/lucide-hand-fist';
 import { HighHeelIcon } from '@/components/icons/lucide-lab-high-heel';
 import { VenetianMaskIcon } from '@/components/icons/lucide-venetian-mask';
 
-import { SelectedPieceState } from '@/lib/game/base';
+import { GameState, SelectedPieceState } from '@/lib/game/base';
 import { COLS, Position, ROWS, pieceTypeEnum } from '@/lib/game/base';
-import { Piece } from '@/lib/game/engine';
 import { cn } from '@/lib/utils';
 
 interface GameBoardProps {
   PLAYER_SIDE_ROWS: number[];
-  allyPieces: Piece[];
-  enemyPieces: Piece[];
+  gameState: GameState;
   isPlanningPhase: boolean;
   selectedPieceState: SelectedPieceState;
   isPlayerTurn: boolean;
@@ -21,8 +19,7 @@ interface GameBoardProps {
 
 export default function Board({
   PLAYER_SIDE_ROWS,
-  allyPieces,
-  enemyPieces,
+  gameState,
   isPlanningPhase,
   selectedPieceState,
   isPlayerTurn,
@@ -47,18 +44,23 @@ export default function Board({
       >
         {Array.from({ length: ROWS }).map((_, row) =>
           Array.from({ length: COLS }).map((_, col) => {
-            const piece = allyPieces.find((p) => p.position.row === row && p.position.col === col);
-            const enemyPiece = enemyPieces.find(
+            const piece = gameState.allyPieces.find(
+              (p) => p.position.row === row && p.position.col === col,
+            );
+            const enemyPiece = gameState.enemyPieces.find(
               (p) => p.position.row === row && p.position.col === col,
             );
             const isPlayerSide = PLAYER_SIDE_ROWS.includes(row);
             const isLight = (row + col) % 2 === 0;
-            const isPossiblePosition = selectedPieceState.possiblePositions.some(
+            const isPossiblePosition: boolean = selectedPieceState.possiblePositions.some(
               (pos: Position) => pos.row === row && pos.col === col,
             );
-            const isSelectedPiece =
+            const isSelectedPiece: boolean =
               selectedPieceState.piece?.position.row === row &&
               selectedPieceState.piece?.position.col === col;
+            const isCapturedPiece: boolean = gameState.capturedPieces.some(
+              (p) => p.position.row === row && p.position.col === col,
+            );
             const isClickable = isPlanningPhase || isPlayerTurn;
             return (
               <div
@@ -68,6 +70,7 @@ export default function Board({
                   'group relative flex cursor-pointer items-center justify-center transition-all',
                   isSelectedPiece ? 'bg-green-400' : isLight ? 'bg-slate-100' : 'bg-slate-200',
                   isPossiblePosition && 'bg-green-200',
+                  isCapturedPiece && 'bg-red-400',
                   !isPlayerSide &&
                     isPlanningPhase &&
                     'bg-stripes-muted cursor-not-allowed opacity-30',
