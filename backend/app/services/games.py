@@ -3,7 +3,7 @@ from typing import Optional
 
 import httpx
 
-from app.models.api.games.get_pieces import GetPiecesResponse
+from app.models.api.games.get_game_state import GameState, GetGameStateResponse
 from app.models.api.games.move_piece import MovePieceResponse
 from app.models.game.base import Player, Position
 from app.models.game.engine import GameBoard, GameEngine, Piece, parse_piece
@@ -20,31 +20,15 @@ class GamesService:
         self, game_id: str, piece: Piece, new_position: Position
     ) -> MovePieceResponse:
         client = await DatabaseService().get_client()
-        response = (
-            await client.table("games").select("turn").eq("game_id", game_id).execute()
-        )
-        if not response.data:
-            raise RoomNotFoundError(
-                status_code=httpx.codes.NOT_FOUND,
-                detail=f"Room not found",
-            )
-        if (
-            not response.data[0]
-            or not isinstance(response.data[0], dict)
-            or "turn" not in response.data[0]
-            or not isinstance(response.data[0]["turn"], int)
-        ):
-            raise Exception(
-                f"No 'turn' key of type int found in existing game data for game {game_id}"
-            )
-        turn: int = response.data[0]["turn"]
+        game_state: GetGameStateResponse = await self.get_game_state(game_id=game_id)
+        raw_pieces = game_state.pieces
+        turn: int = game_state.turn
         if not is_player_turn(player=piece.player, turn=turn):
             raise NotPlayerTurnError(
                 status_code=httpx.codes.BAD_REQUEST,
                 detail=f"It's not {piece.player.value}'s turn",
             )
 
-        raw_pieces = (await self.get_pieces(game_id=game_id)).pieces
         curr_pieces: list[Piece] = [parse_piece(p) for p in raw_pieces]
         game_engine = GameEngine(pieces=curr_pieces)
         matching_piece = next((p for p in curr_pieces if p.id == piece.id), None)
@@ -55,21 +39,22 @@ class GamesService:
         captured_pieces: list[Piece] = game_engine.process_potential_capture(
             new_position=new_position
         )
+
         updated_pieces: list[Piece] = game_engine.game_board.get_pieces()
         turn += 1
-        await client.table("games").update(
-            {
-                "pieces": [p.model_dump() for p in updated_pieces],
-                "captured_pieces": [p.model_dump() for p in captured_pieces],
-                "turn": turn,
-            }
-        ).eq("game_id", game_id).execute()
-
         winner: Optional[Player] = game_engine.process_potential_win()
         if winner:
             await client.table("rooms").update({"status": "completed"}).eq(
                 "game_id", game_id
             ).execute()
+        await client.table("games").update(
+            {
+                "pieces": [p.model_dump() for p in updated_pieces],
+                "captured_pieces": [p.model_dump() for p in captured_pieces],
+                "turn": turn,
+                "winner": winner.value if winner else None,
+            }
+        ).eq("game_id", game_id).execute()
 
         return MovePieceResponse.model_validate(
             {
@@ -81,11 +66,11 @@ class GamesService:
             }
         )
 
-    async def get_pieces(self, game_id: str) -> GetPiecesResponse:
+    async def get_game_state(self, game_id: str) -> GetGameStateResponse:
         client = await DatabaseService().get_client()
         response = (
             await client.table("games")
-            .select("pieces", "captured_pieces")
+            .select("pieces", "captured_pieces", "winner", "turn")
             .eq("game_id", game_id)
             .execute()
         )
@@ -94,34 +79,14 @@ class GamesService:
                 status_code=httpx.codes.NOT_FOUND,
                 detail=f"Room not found",
             )
-        if (
-            not response.data[0]
-            or not isinstance(response.data[0], dict)
-            or "pieces" not in response.data[0]
-        ):
-            raise Exception(
-                f"No 'pieces' key found in existing game data for game {game_id}"
-            )
-        if not isinstance(response.data[0]["pieces"], list):
-            raise Exception(
-                f"'pieces' key is not a list in existing game data for game {game_id}"
-            )
-        pieces = response.data[0]["pieces"]
 
-        if "captured_pieces" not in response.data[0]:
-            raise Exception(
-                f"No 'captured_pieces' key found in existing game data for game {game_id}"
-            )
-        if not isinstance(response.data[0]["captured_pieces"], list):
-            raise Exception(
-                f"'captured_pieces' key is not a list in existing game data for game {game_id}"
-            )
-        captured_pieces = response.data[0]["captured_pieces"]
-
-        return GetPiecesResponse(
+        game_state = GameState.model_validate(response.data[0])
+        return GetGameStateResponse(
             status_code=httpx.codes.OK,
-            pieces=pieces,
-            captured_pieces=captured_pieces,
+            pieces=game_state.pieces,
+            captured_pieces=game_state.captured_pieces,
+            winner=game_state.winner,
+            turn=game_state.turn,
         )
 
     async def initialize(self, game_id: str, pieces: list[Piece]) -> None:

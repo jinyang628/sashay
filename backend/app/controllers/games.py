@@ -4,7 +4,7 @@ import httpx
 from fastapi import APIRouter
 from starlette.responses import JSONResponse
 
-from app.models.api.games.get_pieces import GetPiecesResponse
+from app.models.api.games.get_game_state import GetGameStateResponse
 from app.models.api.games.initialize import InitializeRequest
 from app.models.api.games.move_piece import MovePieceRequest, MovePieceResponse
 from app.services.games import GamesService
@@ -58,25 +58,29 @@ class GamesController:
         @router.get(
             "/pieces",
         )
-        async def get_pieces(game_id: str) -> GetPiecesResponse:
+        async def get_pieces(game_id: str) -> GetGameStateResponse:
             try:
                 log.info("Getting pieces for game %s", game_id)
-                response = await self.service.get_pieces(game_id=game_id)
+                response = await self.service.get_game_state(game_id=game_id)
                 log.info("Pieces retrieved successfully for game %s", game_id)
                 return response
             except RoomNotFoundError as e:
                 log.exception("Room not found for game %s", game_id)
-                return GetPiecesResponse(
+                return GetGameStateResponse(
                     status_code=httpx.codes.NOT_FOUND,
                     pieces=[],
                     captured_pieces=[],
+                    winner=None,
+                    turn=-1,
                 )
             except Exception as e:
                 log.exception("Error getting pieces for game %s: %s", game_id, e)
-                return GetPiecesResponse(
+                return GetGameStateResponse(
                     status_code=httpx.codes.INTERNAL_SERVER_ERROR,
                     pieces=[],
                     captured_pieces=[],
+                    winner=None,
+                    turn=-1,
                 )
 
         @router.post(

@@ -1,5 +1,7 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
+
 import React, { useState } from 'react';
 
 import { CheckCircle2, Loader2 } from 'lucide-react';
@@ -11,7 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 
-import { PIECE_LIMITS, PlanningPhasePlacementMode } from '@/lib/game/base';
+import { PIECE_LIMITS, PlanningPhasePlacementMode, Player } from '@/lib/game/base';
 
 interface SidebarProps {
   isPlanningPhase: boolean;
@@ -23,6 +25,8 @@ interface SidebarProps {
   planningPhasePlacementMode: PlanningPhasePlacementMode;
   validationError: string | null;
   isPlayerTurn: boolean;
+  winner: Player | null;
+  player: Player | null;
   onPlacementModeButtonClick: (mode: PlanningPhasePlacementMode) => void;
   onLockPlacementClick: () => Promise<boolean>;
 }
@@ -39,10 +43,13 @@ export default function Sidebar({
   planningPhasePlacementMode,
   validationError,
   isPlayerTurn,
+  winner,
+  player,
   onPlacementModeButtonClick,
   onLockPlacementClick,
 }: SidebarProps) {
   const [planningState, setPlanningState] = useState(PlanningState.planning);
+  const router = useRouter();
 
   const handleLockPlacement = async () => {
     setPlanningState(PlanningState.initializing);
@@ -112,42 +119,67 @@ export default function Sidebar({
 
   return (
     <Card className="bg-muted/30 flex w-82 flex-col gap-6 p-6">
-      {isPlanningPhase ? (
-        <h2 className="mb-2 text-center text-xl font-bold tracking-tight">Assemble your team</h2>
-      ) : (
-        <h2 className="mb-2 text-center text-xl font-bold tracking-tight">
-          {isPlayerTurn ? 'Your turn' : "Opponent's turn"}
-        </h2>
-      )}
-
-      {isPlanningPhase && (
-        <div className="flex flex-1 flex-col">
-          <div className="flex flex-col gap-3">
-            {dancerPlacementButton}
-            {masterPlacementButton}
-            {spyPlacementButton}
-          </div>
-          <div className="mt-auto flex flex-col gap-3">
-            {validationError && <p className="text-center text-red-500">{validationError}</p>}
-            <Button
-              className="w-full shadow-lg"
-              size="lg"
-              disabled={planningState !== PlanningState.planning}
-              onClick={handleLockPlacement}
-            >
-              {planningState === PlanningState.initializing ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
-              ) : planningState === PlanningState.locked ? (
-                <span className="flex items-center gap-2">
-                  <CheckCircle2 className="h-5 w-5 text-green-500" />
-                  Waiting for opponent to finish
-                </span>
-              ) : (
-                'Lock Placement'
-              )}
+      {winner ? (
+        <>
+          <h2 className="mb-2 text-center text-xl font-bold tracking-tight">Game Over</h2>
+          <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
+            <div className="space-y-1">
+              <p className="text-2xl font-semibold tracking-tight">
+                {player && winner === player ? 'You won' : 'You lost'}
+              </p>
+              <p className="text-muted-foreground text-sm">
+                {player && winner === player
+                  ? 'Congratulations — your masquerade prevails.'
+                  : 'Better luck next time.'}
+              </p>
+            </div>
+            <Button className="w-full cursor-pointer" size="lg" onClick={() => router.push('/')}>
+              Return to Home
             </Button>
           </div>
-        </div>
+        </>
+      ) : (
+        <>
+          {isPlanningPhase ? (
+            <h2 className="mb-2 text-center text-xl font-bold tracking-tight">
+              Assemble your team
+            </h2>
+          ) : (
+            <h2 className="mb-2 text-center text-xl font-bold tracking-tight">
+              {isPlayerTurn ? 'Your turn' : "Opponent's turn"}
+            </h2>
+          )}
+
+          {isPlanningPhase && (
+            <div className="flex flex-1 flex-col">
+              <div className="flex flex-col gap-3">
+                {dancerPlacementButton}
+                {masterPlacementButton}
+                {spyPlacementButton}
+              </div>
+              <div className="mt-auto flex flex-col gap-3">
+                {validationError && <p className="text-center text-red-500">{validationError}</p>}
+                <Button
+                  className="w-full shadow-lg"
+                  size="lg"
+                  disabled={planningState !== PlanningState.planning}
+                  onClick={handleLockPlacement}
+                >
+                  {planningState === PlanningState.initializing ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : planningState === PlanningState.locked ? (
+                    <span className="flex items-center gap-2">
+                      <CheckCircle2 className="h-5 w-5 text-green-500" />
+                      Waiting for opponent to finish
+                    </span>
+                  ) : (
+                    'Lock Placement'
+                  )}
+                </Button>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </Card>
   );

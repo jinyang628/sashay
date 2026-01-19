@@ -9,18 +9,19 @@ export const initializePiecesRequestSchema = z.object({
 
 export type InitializePiecesRequest = z.infer<typeof initializePiecesRequestSchema>;
 
-export const getPiecesRequestSchema = z.object({
+export const getGameStateRequestSchema = z.object({
   game_id: z.string(),
 });
 
-export type GetPiecesRequest = z.infer<typeof getPiecesRequestSchema>;
+export type GetGameStateRequest = z.infer<typeof getGameStateRequestSchema>;
 
-export const getPiecesResponseSchema = z.object({
+export const getGameStateResponseSchema = z.object({
   pieces: z.array(pieceSchema),
   captured_pieces: z.array(pieceSchema),
+  winner: playerEnum.nullable(),
 });
 
-export type GetPiecesResponse = z.infer<typeof getPiecesResponseSchema>;
+export type GetGameStateResponse = z.infer<typeof getGameStateResponseSchema>;
 
 export const movePieceRequestSchema = z.object({
   game_id: z.string(),

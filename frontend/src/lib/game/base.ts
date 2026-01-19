@@ -56,4 +56,5 @@ export type GameState = {
   enemyPieces: Piece[];
   capturedPieces: Piece[];
   gameEngine: GameEngine | null;
+  winner: Player | null;
 };

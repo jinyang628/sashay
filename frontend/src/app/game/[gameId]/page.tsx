@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 
-import { getPieces } from '@/actions/game/get-pieces';
+import { getGameState } from '@/actions/game/get-game-state';
 import { initializePieces } from '@/actions/game/initialize';
 import { movePiece } from '@/actions/game/move-piece';
 import { getPlayerNumber } from '@/actions/room/get-player-number';
@@ -54,6 +54,7 @@ export default function PlanningInterface() {
     enemyPieces: [],
     capturedPieces: [],
     gameEngine: null,
+    winner: null,
   });
   console.log(gameState);
 
@@ -110,28 +111,29 @@ export default function PlanningInterface() {
         async (payload) => {
           const updatedRoom = payload.new;
           if (updatedRoom.status === roomStatusEnum.enum.active) {
-            const piecesData = await getPieces(gameId);
+            const gameStateData = await getGameState(gameId);
             setGameState({
-              allyPieces: piecesData.pieces
+              allyPieces: gameStateData.pieces
                 .filter((p) => p.player === player)
                 .map((p) =>
                   createPieceInstance(p.id, p.player, p.piece_type, p.position, p.is_spy),
                 ),
-              enemyPieces: piecesData.pieces
+              enemyPieces: gameStateData.pieces
                 .filter((p) => p.player !== player)
                 .map((p) =>
                   createPieceInstance(p.id, p.player, p.piece_type, p.position, p.is_spy),
                 ),
-              capturedPieces: piecesData.captured_pieces.map((p) =>
+              capturedPieces: gameStateData.captured_pieces.map((p) =>
                 createPieceInstance(p.id, p.player, p.piece_type, p.position, p.is_spy),
               ),
               gameEngine: new GameEngine(
                 player,
                 0,
-                piecesData.pieces.map((p) =>
+                gameStateData.pieces.map((p) =>
                   createPieceInstance(p.id, p.player, p.piece_type, p.position, p.is_spy),
                 ),
               ),
+              winner: gameStateData.winner,
             });
             setIsPlanningPhase(false);
           }
@@ -165,17 +167,18 @@ export default function PlanningInterface() {
           const updatedGame = payload.new;
           const oldGame = payload.old;
           if (updatedGame.turn !== oldGame.turn) {
-            const piecesData = await getPieces(gameId);
-            const mappedPieces = piecesData.pieces.map((p) =>
+            const gameStateData = await getGameState(gameId);
+            const mappedPieces = gameStateData.pieces.map((p) =>
               createPieceInstance(p.id, p.player, p.piece_type, p.position, p.is_spy),
             );
             setGameState({
               allyPieces: mappedPieces.filter((p) => p.player === player),
               enemyPieces: mappedPieces.filter((p) => p.player !== player),
-              capturedPieces: piecesData.captured_pieces.map((p) =>
+              capturedPieces: gameStateData.captured_pieces.map((p) =>
                 createPieceInstance(p.id, p.player, p.piece_type, p.position, p.is_spy),
               ),
               gameEngine: new GameEngine(player, updatedGame.turn, mappedPieces),
+              winner: gameStateData.winner,
             });
           }
         },
@@ -301,6 +304,7 @@ export default function PlanningInterface() {
             createPieceInstance(p.id, p.player, p.piece_type, p.position, p.is_spy),
           ),
           gameEngine: new GameEngine(player, response.turn, mappedPieces),
+          winner: response.winner,
         });
         setSelectedPieceState({
           piece: null,
@@ -363,6 +367,8 @@ export default function PlanningInterface() {
         planningPhasePlacementMode={planningPhasePlacementMode}
         validationError={validationError}
         isPlayerTurn={gameState.gameEngine?.isPlayerTurn() ?? false}
+        winner={gameState.winner}
+        player={player}
         onPlacementModeButtonClick={setPlanningPhasePlacementMode}
         onLockPlacementClick={onLockPlacementClick}
       />

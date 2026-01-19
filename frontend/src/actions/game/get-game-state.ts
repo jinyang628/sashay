@@ -3,16 +3,16 @@
 import axios from 'axios';
 import { StatusCodes } from 'http-status-codes';
 
-import { GetPiecesResponse, getPiecesRequestSchema } from '@/types/game';
+import { GetGameStateResponse, getGameStateRequestSchema } from '@/types/game';
 
-export async function getPieces(game_id: string): Promise<GetPiecesResponse> {
+export async function getGameState(game_id: string): Promise<GetGameStateResponse> {
   try {
-    const request = getPiecesRequestSchema.parse({
+    const request = getGameStateRequestSchema.parse({
       game_id: game_id,
     });
     console.log('Getting pieces:', request);
 
-    const response = await axios.get<GetPiecesResponse>(
+    const response = await axios.get<GetGameStateResponse>(
       `${process.env.SERVER_BASE_URL}/api/v1/games/pieces`,
       {
         params: request,

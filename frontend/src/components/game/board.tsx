@@ -114,10 +114,12 @@ export default function Board({
           }),
         )}
       </div>
-      <p className="text-muted-foreground mt-6 flex items-center gap-2 text-sm italic">
-        <Info className="h-4 w-4" />
-        Click an occupied square to recall the piece to your inventory.
-      </p>
+      {isPlanningPhase ? (
+        <p className="text-muted-foreground mt-6 flex items-center gap-2 text-sm italic">
+          <Info className="h-4 w-4" />
+          Click an occupied square to recall the piece to your inventory.
+        </p>
+      ) : null}
     </div>
   );
 }
