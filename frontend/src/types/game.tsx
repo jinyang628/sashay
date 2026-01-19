@@ -9,6 +9,13 @@ export const initializePiecesRequestSchema = z.object({
 
 export type InitializePiecesRequest = z.infer<typeof initializePiecesRequestSchema>;
 
+export const movementSchema = z.object({
+  previous_position: positionSchema,
+  new_position: positionSchema,
+});
+
+export type Movement = z.infer<typeof movementSchema>;
+
 export const getGameStateRequestSchema = z.object({
   game_id: z.string(),
 });
@@ -18,6 +25,7 @@ export type GetGameStateRequest = z.infer<typeof getGameStateRequestSchema>;
 export const getGameStateResponseSchema = z.object({
   pieces: z.array(pieceSchema),
   captured_pieces: z.array(pieceSchema),
+  movement: movementSchema.nullable(),
   victory_state: victoryStateSchema.nullable(),
 });
 
@@ -36,6 +44,7 @@ export const movePieceResponseSchema = z.object({
   captured_pieces: z.array(pieceSchema),
   victory_state: victoryStateSchema.nullable(),
   pieces: z.array(pieceSchema),
+  movement: movementSchema.nullable(),
   turn: z.number(),
 });
 

@@ -61,6 +61,9 @@ export default function Board({
             const isCapturedPiece: boolean = gameState.capturedPieces.some(
               (p) => p.position.row === row && p.position.col === col,
             );
+            const isMovementSquare: boolean =
+              (gameState.movement?.new_position.row === row &&
+                gameState.movement?.new_position.col === col);
             const isClickable = isPlanningPhase || isPlayerTurn;
             return (
               <div
@@ -74,6 +77,7 @@ export default function Board({
                   !isPlayerSide &&
                     isPlanningPhase &&
                     'bg-stripes-muted cursor-not-allowed opacity-30',
+                  isMovementSquare && 'bg-green-400',
                   isClickable && 'hover:ring-primary/50 hover:z-10 hover:ring-2',
                 )}
               >

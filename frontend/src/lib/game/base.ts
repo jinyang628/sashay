@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { Movement } from '@/types/game';
+
 import { GameEngine, Piece as PieceClass } from './engine';
 
 export const ROWS = 8;
@@ -67,5 +69,6 @@ export type GameState = {
   enemyPieces: PieceClass[];
   capturedPieces: PieceClass[];
   gameEngine: GameEngine | null;
+  movement: Movement | null;
   victoryState: VictoryState | null;
 };

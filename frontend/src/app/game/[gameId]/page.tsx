@@ -54,6 +54,7 @@ export default function PlanningInterface() {
     enemyPieces: [],
     capturedPieces: [],
     gameEngine: null,
+    movement: null,
     victoryState: null,
   });
   console.log(gameState);
@@ -133,6 +134,7 @@ export default function PlanningInterface() {
                   createPieceInstance(p.id, p.player, p.piece_type, p.position, p.is_spy),
                 ),
               ),
+              movement: gameStateData.movement,
               victoryState: gameStateData.victory_state,
             });
             setIsPlanningPhase(false);
@@ -178,6 +180,7 @@ export default function PlanningInterface() {
                 createPieceInstance(p.id, p.player, p.piece_type, p.position, p.is_spy),
               ),
               gameEngine: new GameEngine(player, updatedGame.turn, mappedPieces),
+              movement: gameStateData.movement,
               victoryState: gameStateData.victory_state,
             });
           }
@@ -304,6 +307,7 @@ export default function PlanningInterface() {
             createPieceInstance(p.id, p.player, p.piece_type, p.position, p.is_spy),
           ),
           gameEngine: new GameEngine(player, response.turn, mappedPieces),
+          movement: response.movement,
           victoryState: response.victory_state,
         });
         setSelectedPieceState({
