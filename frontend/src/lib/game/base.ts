@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { GameEngine, Piece } from './engine';
+import { GameEngine, Piece as PieceClass } from './engine';
 
 export const ROWS = 8;
 export const COLS = 6;
@@ -16,6 +16,17 @@ export const getPlayerSideRows = (player: Player) => {
 export const pieceTypeEnum = z.enum(['dancer', 'master']);
 
 export type PieceType = z.infer<typeof pieceTypeEnum>;
+
+export const victoryTypeEnum = z.enum(['ally_spy_infiltrated', 'enemy_spy_captured']);
+
+export type VictoryType = z.infer<typeof victoryTypeEnum>;
+
+export const victoryStateSchema = z.object({
+  player: playerEnum,
+  victory_type: victoryTypeEnum,
+});
+
+export type VictoryState = z.infer<typeof victoryStateSchema>;
 
 export const positionSchema = z.object({
   row: z.number(),
@@ -47,14 +58,14 @@ export enum PlanningPhasePlacementMode {
 }
 
 export type SelectedPieceState = {
-  piece: Piece | null;
+  piece: PieceClass | null;
   possiblePositions: Position[];
 };
 
 export type GameState = {
-  allyPieces: Piece[];
-  enemyPieces: Piece[];
-  capturedPieces: Piece[];
+  allyPieces: PieceClass[];
+  enemyPieces: PieceClass[];
+  capturedPieces: PieceClass[];
   gameEngine: GameEngine | null;
-  winner: Player | null;
+  victoryState: VictoryState | null;
 };

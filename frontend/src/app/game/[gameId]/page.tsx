@@ -54,7 +54,7 @@ export default function PlanningInterface() {
     enemyPieces: [],
     capturedPieces: [],
     gameEngine: null,
-    winner: null,
+    victoryState: null,
   });
   console.log(gameState);
 
@@ -133,7 +133,7 @@ export default function PlanningInterface() {
                   createPieceInstance(p.id, p.player, p.piece_type, p.position, p.is_spy),
                 ),
               ),
-              winner: gameStateData.winner,
+              victoryState: gameStateData.victory_state,
             });
             setIsPlanningPhase(false);
           }
@@ -178,7 +178,7 @@ export default function PlanningInterface() {
                 createPieceInstance(p.id, p.player, p.piece_type, p.position, p.is_spy),
               ),
               gameEngine: new GameEngine(player, updatedGame.turn, mappedPieces),
-              winner: gameStateData.winner,
+              victoryState: gameStateData.victory_state,
             });
           }
         },
@@ -304,7 +304,7 @@ export default function PlanningInterface() {
             createPieceInstance(p.id, p.player, p.piece_type, p.position, p.is_spy),
           ),
           gameEngine: new GameEngine(player, response.turn, mappedPieces),
-          winner: response.winner,
+          victoryState: response.victory_state,
         });
         setSelectedPieceState({
           piece: null,
@@ -367,7 +367,7 @@ export default function PlanningInterface() {
         planningPhasePlacementMode={planningPhasePlacementMode}
         validationError={validationError}
         isPlayerTurn={gameState.gameEngine?.isPlayerTurn() ?? false}
-        winner={gameState.winner}
+        victoryState={gameState.victoryState}
         player={player}
         onPlacementModeButtonClick={setPlanningPhasePlacementMode}
         onLockPlacementClick={onLockPlacementClick}

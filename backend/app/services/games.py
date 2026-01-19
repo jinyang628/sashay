@@ -72,7 +72,7 @@ class GamesService:
         client = await DatabaseService().get_client()
         response = (
             await client.table("games")
-            .select("pieces", "captured_pieces", "winner", "turn")
+            .select("pieces", "captured_pieces", "winner", "victory_type", "turn")
             .eq("game_id", game_id)
             .execute()
         )

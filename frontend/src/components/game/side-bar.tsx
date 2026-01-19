@@ -13,7 +13,13 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 
-import { PIECE_LIMITS, PlanningPhasePlacementMode, Player } from '@/lib/game/base';
+import {
+  PIECE_LIMITS,
+  PlanningPhasePlacementMode,
+  Player,
+  VictoryState,
+  victoryTypeEnum,
+} from '@/lib/game/base';
 
 interface SidebarProps {
   isPlanningPhase: boolean;
@@ -25,7 +31,7 @@ interface SidebarProps {
   planningPhasePlacementMode: PlanningPhasePlacementMode;
   validationError: string | null;
   isPlayerTurn: boolean;
-  winner: Player | null;
+  victoryState: VictoryState | null;
   player: Player | null;
   onPlacementModeButtonClick: (mode: PlanningPhasePlacementMode) => void;
   onLockPlacementClick: () => Promise<boolean>;
@@ -43,7 +49,7 @@ export default function Sidebar({
   planningPhasePlacementMode,
   validationError,
   isPlayerTurn,
-  winner,
+  victoryState,
   player,
   onPlacementModeButtonClick,
   onLockPlacementClick,
@@ -123,13 +129,21 @@ export default function Sidebar({
       <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
         <div className="space-y-1">
           <p className="text-2xl font-semibold tracking-tight">
-            {player && winner === player ? 'You won' : 'You lost'}
+            {player && victoryState?.player === player ? 'You won' : 'You lost'}
           </p>
-          <p className="text-muted-foreground text-sm">
-            {player && winner === player
-              ? 'Congratulations — your masquerade prevails.'
-              : 'Better luck next time.'}
-          </p>
+          {(() => {
+            const isPlayerWinner = player && victoryState?.player === player;
+            const isSpyInfiltrated =
+              victoryState?.victory_type === victoryTypeEnum.enum.ally_spy_infiltrated;
+            const message = isPlayerWinner
+              ? isSpyInfiltrated
+                ? 'Congratulations — your spy has infiltrated enemy lines.'
+                : "Congratulations — you've captured the enemy's spy."
+              : isSpyInfiltrated
+                ? "The enemy's spy has infiltrated your lines. Better luck next time."
+                : 'Your spy has been captured. Better luck next time.';
+            return <p className="text-muted-foreground text-sm">{message}</p>;
+          })()}
         </div>
         <Button className="w-full cursor-pointer" size="lg" onClick={() => router.push('/')}>
           Return to Home
@@ -140,7 +154,7 @@ export default function Sidebar({
 
   return (
     <Card className="bg-muted/30 flex w-82 flex-col gap-6 p-6">
-      {winner ? (
+      {victoryState ? (
         gameOverComponent
       ) : (
         <>

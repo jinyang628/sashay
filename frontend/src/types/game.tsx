@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { pieceSchema, playerEnum, positionSchema } from '@/lib/game/base';
+import { pieceSchema, positionSchema, victoryStateSchema } from '@/lib/game/base';
 
 export const initializePiecesRequestSchema = z.object({
   game_id: z.string(),
@@ -18,7 +18,7 @@ export type GetGameStateRequest = z.infer<typeof getGameStateRequestSchema>;
 export const getGameStateResponseSchema = z.object({
   pieces: z.array(pieceSchema),
   captured_pieces: z.array(pieceSchema),
-  winner: playerEnum.nullable(),
+  victory_state: victoryStateSchema.nullable(),
 });
 
 export type GetGameStateResponse = z.infer<typeof getGameStateResponseSchema>;
@@ -34,7 +34,7 @@ export type MovePieceRequest = z.infer<typeof movePieceRequestSchema>;
 export const movePieceResponseSchema = z.object({
   status_code: z.number(),
   captured_pieces: z.array(pieceSchema),
-  winner: playerEnum.nullable(),
+  victory_state: victoryStateSchema.nullable(),
   pieces: z.array(pieceSchema),
   turn: z.number(),
 });
