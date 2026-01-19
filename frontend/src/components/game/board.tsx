@@ -106,7 +106,11 @@ export default function Board({
 
                 {enemyPiece && (
                   <div className="flex h-14 w-14 scale-100 items-center justify-center rounded-xl bg-slate-400 shadow-md transition-all group-hover:scale-110">
-                    <VenetianMaskIcon className="h-8 w-8 text-slate-900" />
+                    {enemyPiece.pieceType === pieceTypeEnum.enum.master ? (
+                      <HandFistIcon className="h-8 w-8 text-slate-900" />
+                    ) : (
+                      <HighHeelIcon className="h-8 w-8 text-slate-900" />
+                    )}
                   </div>
                 )}
               </div>

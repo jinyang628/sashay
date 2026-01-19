@@ -286,8 +286,28 @@ class GameEngine:
 
         - Player B (player 2) wins if they have a spy Dancer on the top row (index 0).
         - Player A (player 1) wins if they have a spy Dancer on the bottom row (index ROWS - 1).
+        - If a player's spy is no longer on the board, that player loses and the opponent wins.
         - Returns None if there is currently no winner.
         """
+        pieces_on_board = self.game_board.get_pieces()
+        player_one_has_spy = any(
+            isinstance(piece, Dancer)
+            and piece.is_spy
+            and piece.player == Player.PLAYER_ONE
+            for piece in pieces_on_board
+        )
+        player_two_has_spy = any(
+            isinstance(piece, Dancer)
+            and piece.is_spy
+            and piece.player == Player.PLAYER_TWO
+            for piece in pieces_on_board
+        )
+
+        if not player_one_has_spy:
+            return Player.PLAYER_TWO
+        if not player_two_has_spy:
+            return Player.PLAYER_ONE
+
         top_row_index = 0
         for col in range(COLS):
             piece = self.game_board.board[top_row_index][col]
