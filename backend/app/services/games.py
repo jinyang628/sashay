@@ -162,10 +162,6 @@ class GamesService:
                 f"'pieces' key is not a list in existing game data for game {game_id}"
             )
         existing_pieces += [piece.model_dump() for piece in pieces]
-        log.debug("Updated pieces %s", existing_pieces)
-        await client.table("games").update({"pieces": existing_pieces}).eq(
-            "game_id", game_id
-        ).execute()
 
         players_seen = set()
         for piece in existing_pieces:
@@ -173,7 +169,28 @@ class GamesService:
                 players_seen.add(piece.get("player", None))
             else:
                 raise Exception(f"Piece in game {game_id} is not a dict: {piece!r}")
+
         if len(players_seen) == 2:
             await client.table("rooms").update({"status": "active"}).eq(
+                "game_id", game_id
+            ).execute()
+            game_engine = GameEngine(
+                pieces=[parse_piece(p) for p in existing_pieces if isinstance(p, dict)]
+            )
+            captured_pieces: list[Piece] = game_engine.process_initialization_capture()
+            updated_pieces: list[Piece] = game_engine.game_board.get_pieces()
+            victory_state: Optional[VictoryState] = game_engine.process_potential_win()
+            await client.table("games").update(
+                {
+                    "pieces": [p.model_dump() for p in updated_pieces],
+                    "captured_pieces": [p.model_dump() for p in captured_pieces],
+                    "winner": victory_state.player if victory_state else None,
+                    "victory_type": (
+                        victory_state.victory_type if victory_state else None
+                    ),
+                }
+            ).eq("game_id", game_id).execute()
+        else:
+            await client.table("games").update({"pieces": existing_pieces}).eq(
                 "game_id", game_id
             ).execute()

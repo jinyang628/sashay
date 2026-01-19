@@ -279,7 +279,8 @@ class GameEngine:
         self.game_board.board[new_position.row][new_position.col] = piece
 
     def process_potential_capture(self, new_position: Position) -> list[Piece]:
-        captured_pieces = []
+        captured_pieces: list[Piece] = []
+        captured_piece_ids = set()
         for i in range(new_position.row - 1, new_position.row + 2):
             for j in range(new_position.col - 1, new_position.col + 2):
                 if i < 0 or i >= ROWS or j < 0 or j >= COLS:
@@ -290,17 +291,24 @@ class GameEngine:
                 if not isinstance(neighbor_piece, Piece):
                     raise TypeError(f"Expected Piece, got {type(neighbor_piece)}")
                 if neighbor_piece.is_surrounded(game_board=self.game_board):
-
-                    self.game_board.remove_piece(piece=neighbor_piece)
                     captured_pieces.append(neighbor_piece)
+                    captured_piece_ids.add(neighbor_piece.id)
+        for piece in self.game_board.get_pieces():
+            if piece.id in captured_piece_ids:
+                self.game_board.remove_piece(piece=piece)
         return captured_pieces
 
     def process_initialization_capture(self) -> list[Piece]:
-        captured_pieces = []
-        for piece in self.game_board.get_pieces():
+        captured_pieces: list[Piece] = []
+        captured_piece_ids = set()
+        curr_pieces: list[Piece] = self.game_board.get_pieces()
+        for piece in curr_pieces:
             if piece.is_surrounded(game_board=self.game_board):
-                self.game_board.remove_piece(piece=piece)
                 captured_pieces.append(piece)
+                captured_piece_ids.add(piece.id)
+        for piece in curr_pieces:
+            if piece.id in captured_piece_ids:
+                self.game_board.remove_piece(piece=piece)
         return captured_pieces
 
     def process_potential_win(self) -> Optional[VictoryState]:
