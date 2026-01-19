@@ -121,31 +121,33 @@ export default function Sidebar({
       )}
 
       {isPlanningPhase && (
-        <>
+        <div className="flex flex-1 flex-col">
           <div className="flex flex-col gap-3">
             {dancerPlacementButton}
             {masterPlacementButton}
             {spyPlacementButton}
-            {validationError && <p className="text-red-500">{validationError}</p>}
           </div>
-          <Button
-            className="w-full shadow-lg"
-            size="lg"
-            disabled={planningState !== PlanningState.planning}
-            onClick={handleLockPlacement}
-          >
-            {planningState === PlanningState.initializing ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
-            ) : planningState === PlanningState.locked ? (
-              <span className="flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-green-500" />
-                Waiting for opponent to finish
-              </span>
-            ) : (
-              'Lock Placement'
-            )}
-          </Button>
-        </>
+          <div className="mt-auto flex flex-col gap-3">
+            {validationError && <p className="text-center text-red-500">{validationError}</p>}
+            <Button
+              className="w-full shadow-lg"
+              size="lg"
+              disabled={planningState !== PlanningState.planning}
+              onClick={handleLockPlacement}
+            >
+              {planningState === PlanningState.initializing ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : planningState === PlanningState.locked ? (
+                <span className="flex items-center gap-2">
+                  <CheckCircle2 className="h-5 w-5 text-green-500" />
+                  Waiting for opponent to finish
+                </span>
+              ) : (
+                'Lock Placement'
+              )}
+            </Button>
+          </div>
+        </div>
       )}
     </Card>
   );

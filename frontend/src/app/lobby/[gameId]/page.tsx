@@ -4,6 +4,8 @@ import { useRouter } from 'next/navigation';
 
 import { use, useEffect } from 'react';
 
+import { toast } from 'sonner';
+
 import StatusText from '@/components/room/status-text';
 
 import { roomStatusEnum } from '@/types/room';
@@ -64,7 +66,17 @@ export default function LobbyPage({ params }: LobbyPageProps) {
             <h1 className="bg-gradient-to-r from-[var(--sashay-amber)] via-[var(--sashay-amber-soft)] to-[var(--sashay-crimson)] bg-clip-text text-5xl font-semibold tracking-tight text-transparent sm:text-3xl">
               Your masquerade is held at
             </h1>
-            <p className="animate-title-flicker from-sashay-gold to-sashay-rose bg-gradient-to-r via-amber-200 bg-clip-text p-1 text-8xl font-semibold text-transparent sm:text-6xl">
+            <p
+              className="animate-title-flicker from-sashay-gold to-sashay-rose cursor-copy bg-gradient-to-r via-amber-200 bg-clip-text p-1 text-8xl font-semibold text-transparent transition-opacity hover:opacity-80 sm:text-6xl"
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(gameId);
+                  toast.success('Room code successfully copied');
+                } catch (error) {
+                  toast.error('Failed to copy room code');
+                }
+              }}
+            >
               {gameId}
             </p>
           </div>
