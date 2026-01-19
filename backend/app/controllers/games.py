@@ -70,7 +70,7 @@ class GamesController:
                     status_code=httpx.codes.NOT_FOUND,
                     pieces=[],
                     captured_pieces=[],
-                    winner=None,
+                    victory_state=None,
                     turn=-1,
                 )
             except Exception as e:
@@ -79,7 +79,7 @@ class GamesController:
                     status_code=httpx.codes.INTERNAL_SERVER_ERROR,
                     pieces=[],
                     captured_pieces=[],
-                    winner=None,
+                    victory_state=None,
                     turn=-1,
                 )
 
@@ -99,7 +99,7 @@ class GamesController:
                 return MovePieceResponse(
                     status_code=httpx.codes.NOT_FOUND,
                     captured_pieces=[],
-                    winner=None,
+                    victory_state=None,
                     pieces=[],
                     turn=-1,
                 )
@@ -108,7 +108,7 @@ class GamesController:
                 return MovePieceResponse(
                     status_code=httpx.codes.INTERNAL_SERVER_ERROR,
                     captured_pieces=[],
-                    winner=None,
+                    victory_state=None,
                     pieces=[],
                     turn=-1,
                 )

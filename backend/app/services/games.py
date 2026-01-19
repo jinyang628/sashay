@@ -5,8 +5,9 @@ import httpx
 
 from app.models.api.games.get_game_state import GameState, GetGameStateResponse
 from app.models.api.games.move_piece import MovePieceResponse
-from app.models.game.base import Player, Position
-from app.models.game.engine import GameBoard, GameEngine, Piece, parse_piece
+from app.models.game.base import Position
+from app.models.game.engine import (GameBoard, GameEngine, Piece, VictoryState,
+                                    parse_piece)
 from app.services.database import DatabaseService
 from app.utils.errors import (InvalidInitializationError, NotPlayerTurnError,
                               RoomNotFoundError)
@@ -42,8 +43,8 @@ class GamesService:
 
         updated_pieces: list[Piece] = game_engine.game_board.get_pieces()
         turn += 1
-        winner: Optional[Player] = game_engine.process_potential_win()
-        if winner:
+        victory_state: Optional[VictoryState] = game_engine.process_potential_win()
+        if victory_state:
             await client.table("rooms").update({"status": "completed"}).eq(
                 "game_id", game_id
             ).execute()
@@ -52,7 +53,8 @@ class GamesService:
                 "pieces": [p.model_dump() for p in updated_pieces],
                 "captured_pieces": [p.model_dump() for p in captured_pieces],
                 "turn": turn,
-                "winner": winner.value if winner else None,
+                "winner": victory_state.player if victory_state else None,
+                "victory_type": victory_state.victory_type if victory_state else None,
             }
         ).eq("game_id", game_id).execute()
 
@@ -60,7 +62,7 @@ class GamesService:
             {
                 "status_code": httpx.codes.OK,
                 "captured_pieces": captured_pieces,
-                "winner": winner.value if winner else None,
+                "victory_state": victory_state,
                 "pieces": updated_pieces,
                 "turn": turn,
             }
@@ -85,7 +87,13 @@ class GamesService:
             status_code=httpx.codes.OK,
             pieces=game_state.pieces,
             captured_pieces=game_state.captured_pieces,
-            winner=game_state.winner,
+            victory_state=(
+                VictoryState(
+                    player=game_state.winner, victory_type=game_state.victory_type
+                )
+                if game_state.winner and game_state.victory_type
+                else None
+            ),
             turn=game_state.turn,
         )
 

@@ -242,6 +242,16 @@ def parse_piece(piece_data: dict[str, Any]) -> Piece:
         raise ValueError(f"Unknown piece type: {piece_type}")
 
 
+class VictoryType(StrEnum):
+    ALLY_SPY_INFILTRATED = "ally_spy_infiltrated"
+    ENEMY_SPY_CAPTURED = "enemy_spy_captured"
+
+
+class VictoryState(BaseModel):
+    player: Player
+    victory_type: VictoryType
+
+
 class GameEngine:
     def __init__(self, pieces: list[Piece]):
         self.game_board = GameBoard(pieces=pieces)
@@ -280,12 +290,12 @@ class GameEngine:
                     captured_pieces.append(neighbor_piece)
         return captured_pieces
 
-    def process_potential_win(self) -> Optional[Player]:
+    def process_potential_win(self) -> Optional[VictoryState]:
         """
         Determine if either player has won the game.
 
-        - Player B (player 2) wins if they have a spy Dancer on the top row (index 0).
-        - Player A (player 1) wins if they have a spy Dancer on the bottom row (index ROWS - 1).
+        - Player 2 wins if they have a spy Dancer on the top row (index 0).
+        - Player 1 wins if they have a spy Dancer on the bottom row (index ROWS - 1).
         - If a player's spy is no longer on the board, that player loses and the opponent wins.
         - Returns None if there is currently no winner.
         """
@@ -304,9 +314,13 @@ class GameEngine:
         )
 
         if not player_one_has_spy:
-            return Player.PLAYER_TWO
+            return VictoryState(
+                player=Player.PLAYER_TWO, victory_type=VictoryType.ENEMY_SPY_CAPTURED
+            )
         if not player_two_has_spy:
-            return Player.PLAYER_ONE
+            return VictoryState(
+                player=Player.PLAYER_ONE, victory_type=VictoryType.ENEMY_SPY_CAPTURED
+            )
 
         top_row_index = 0
         for col in range(COLS):
@@ -316,7 +330,10 @@ class GameEngine:
                 and piece.is_spy
                 and piece.player == Player.PLAYER_TWO
             ):
-                return Player.PLAYER_TWO
+                return VictoryState(
+                    player=Player.PLAYER_TWO,
+                    victory_type=VictoryType.ALLY_SPY_INFILTRATED,
+                )
 
         bottom_row_index = ROWS - 1
         for col in range(COLS):
@@ -326,6 +343,9 @@ class GameEngine:
                 and piece.is_spy
                 and piece.player == Player.PLAYER_ONE
             ):
-                return Player.PLAYER_ONE
+                return VictoryState(
+                    player=Player.PLAYER_ONE,
+                    victory_type=VictoryType.ALLY_SPY_INFILTRATED,
+                )
 
         return None
