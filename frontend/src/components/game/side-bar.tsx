@@ -117,27 +117,31 @@ export default function Sidebar({
     </Button>
   );
 
+  const gameOverComponent = (
+    <>
+      <h2 className="mb-2 text-center text-xl font-bold tracking-tight">Game Over</h2>
+      <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
+        <div className="space-y-1">
+          <p className="text-2xl font-semibold tracking-tight">
+            {player && winner === player ? 'You won' : 'You lost'}
+          </p>
+          <p className="text-muted-foreground text-sm">
+            {player && winner === player
+              ? 'Congratulations — your masquerade prevails.'
+              : 'Better luck next time.'}
+          </p>
+        </div>
+        <Button className="w-full cursor-pointer" size="lg" onClick={() => router.push('/')}>
+          Return to Home
+        </Button>
+      </div>
+    </>
+  );
+
   return (
     <Card className="bg-muted/30 flex w-82 flex-col gap-6 p-6">
       {winner ? (
-        <>
-          <h2 className="mb-2 text-center text-xl font-bold tracking-tight">Game Over</h2>
-          <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
-            <div className="space-y-1">
-              <p className="text-2xl font-semibold tracking-tight">
-                {player && winner === player ? 'You won' : 'You lost'}
-              </p>
-              <p className="text-muted-foreground text-sm">
-                {player && winner === player
-                  ? 'Congratulations — your masquerade prevails.'
-                  : 'Better luck next time.'}
-              </p>
-            </div>
-            <Button className="w-full cursor-pointer" size="lg" onClick={() => router.push('/')}>
-              Return to Home
-            </Button>
-          </div>
-        </>
+        gameOverComponent
       ) : (
         <>
           {isPlanningPhase ? (
