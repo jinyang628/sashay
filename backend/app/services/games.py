@@ -4,6 +4,7 @@ from typing import Optional
 import httpx
 
 from app.models.api.games.get_game_state import GameState, GetGameStateResponse
+from app.models.api.games.initialize import InitializeCaptureResponse
 from app.models.api.games.move_piece import MovePieceResponse
 from app.models.game.base import Position
 from app.models.game.engine import (GameBoard, GameEngine, Movement, Piece,
@@ -17,6 +18,19 @@ log = logging.getLogger(__name__)
 
 
 class GamesService:
+    async def initialize_capture(self, game_id: str) -> InitializeCaptureResponse:
+        game_state: GetGameStateResponse = await self.get_game_state(game_id=game_id)
+        raw_pieces = game_state.pieces
+        curr_pieces: list[Piece] = [parse_piece(p) for p in raw_pieces]
+        game_engine = GameEngine(pieces=curr_pieces)
+        captured_pieces: list[Piece] = game_engine.process_initialization_capture()
+        updated_pieces: list[Piece] = game_engine.game_board.get_pieces()
+        return InitializeCaptureResponse(
+            status_code=httpx.codes.OK,
+            pieces=updated_pieces,
+            captured_pieces=captured_pieces,
+        )
+
     async def move_piece(
         self, game_id: str, piece: Piece, new_position: Position
     ) -> MovePieceResponse:

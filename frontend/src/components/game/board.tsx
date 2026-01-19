@@ -62,8 +62,8 @@ export default function Board({
               (p) => p.position.row === row && p.position.col === col,
             );
             const isMovementSquare: boolean =
-              (gameState.movement?.new_position.row === row &&
-                gameState.movement?.new_position.col === col);
+              gameState.movement?.new_position.row === row &&
+              gameState.movement?.new_position.col === col;
             const isClickable = isPlanningPhase || isPlayerTurn;
             return (
               <div

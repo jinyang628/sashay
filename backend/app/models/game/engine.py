@@ -295,6 +295,14 @@ class GameEngine:
                     captured_pieces.append(neighbor_piece)
         return captured_pieces
 
+    def process_initialization_capture(self) -> list[Piece]:
+        captured_pieces = []
+        for piece in self.game_board.get_pieces():
+            if piece.is_surrounded(game_board=self.game_board):
+                self.game_board.remove_piece(piece=piece)
+                captured_pieces.append(piece)
+        return captured_pieces
+
     def process_potential_win(self) -> Optional[VictoryState]:
         """
         Determine if either player has won the game.

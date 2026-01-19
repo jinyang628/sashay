@@ -5,7 +5,9 @@ from fastapi import APIRouter
 from starlette.responses import JSONResponse
 
 from app.models.api.games.get_game_state import GetGameStateResponse
-from app.models.api.games.initialize import InitializeRequest
+from app.models.api.games.initialize import (InitializeCaptureRequest,
+                                             InitializeCaptureResponse,
+                                             InitializeRequest)
 from app.models.api.games.move_piece import MovePieceRequest, MovePieceResponse
 from app.services.games import GamesService
 from app.utils.errors import RoomNotFoundError
@@ -53,6 +55,32 @@ class GamesController:
                 return JSONResponse(
                     content={"message": "Error initializing pieces"},
                     status_code=httpx.codes.INTERNAL_SERVER_ERROR,
+                )
+
+        @router.post("/initialize/capture")
+        async def initialize_capture(
+            input: InitializeCaptureRequest,
+        ) -> InitializeCaptureResponse:
+            try:
+                log.info("Initializing capture for game %s", input.game_id)
+                return await self.service.initialize_capture(
+                    game_id=input.game_id,
+                )
+            except RoomNotFoundError as e:
+                log.exception("Room not found for game %s", input.game_id)
+                return InitializeCaptureResponse(
+                    status_code=httpx.codes.NOT_FOUND,
+                    pieces=[],
+                    captured_pieces=[],
+                )
+            except Exception as e:
+                log.exception(
+                    "Error initializing capture for game %s: %s", input.game_id, e
+                )
+                return InitializeCaptureResponse(
+                    status_code=httpx.codes.INTERNAL_SERVER_ERROR,
+                    pieces=[],
+                    captured_pieces=[],
                 )
 
         @router.get(

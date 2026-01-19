@@ -9,6 +9,20 @@ export const initializePiecesRequestSchema = z.object({
 
 export type InitializePiecesRequest = z.infer<typeof initializePiecesRequestSchema>;
 
+export const initializeCaptureRequestSchema = z.object({
+  game_id: z.string(),
+});
+
+export type InitializeCaptureRequest = z.infer<typeof initializeCaptureRequestSchema>;
+
+export const initializeCaptureResponseSchema = z.object({
+  status_code: z.number(),
+  pieces: z.array(pieceSchema),
+  captured_pieces: z.array(pieceSchema),
+});
+
+export type InitializeCaptureResponse = z.infer<typeof initializeCaptureResponseSchema>;
+
 export const movementSchema = z.object({
   previous_position: positionSchema,
   new_position: positionSchema,
