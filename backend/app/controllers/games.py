@@ -71,6 +71,7 @@ class GamesController:
                     pieces=[],
                     captured_pieces=[],
                     victory_state=None,
+                    movement=None,
                     turn=-1,
                 )
             except Exception as e:
@@ -80,6 +81,7 @@ class GamesController:
                     pieces=[],
                     captured_pieces=[],
                     victory_state=None,
+                    movement=None,
                     turn=-1,
                 )
 
@@ -101,6 +103,7 @@ class GamesController:
                     captured_pieces=[],
                     victory_state=None,
                     pieces=[],
+                    movement=None,
                     turn=-1,
                 )
             except Exception as e:
@@ -110,5 +113,6 @@ class GamesController:
                     captured_pieces=[],
                     victory_state=None,
                     pieces=[],
+                    movement=None,
                     turn=-1,
                 )

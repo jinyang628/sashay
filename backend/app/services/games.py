@@ -6,8 +6,8 @@ import httpx
 from app.models.api.games.get_game_state import GameState, GetGameStateResponse
 from app.models.api.games.move_piece import MovePieceResponse
 from app.models.game.base import Position
-from app.models.game.engine import (GameBoard, GameEngine, Piece, VictoryState,
-                                    parse_piece)
+from app.models.game.engine import (GameBoard, GameEngine, Movement, Piece,
+                                    VictoryState, parse_piece)
 from app.services.database import DatabaseService
 from app.utils.errors import (InvalidInitializationError, NotPlayerTurnError,
                               RoomNotFoundError)
@@ -48,6 +48,10 @@ class GamesService:
             await client.table("rooms").update({"status": "completed"}).eq(
                 "game_id", game_id
             ).execute()
+        movement: Movement = Movement(
+            previous_position=matching_piece.position,
+            new_position=new_position,
+        )
         await client.table("games").update(
             {
                 "pieces": [p.model_dump() for p in updated_pieces],
@@ -55,6 +59,7 @@ class GamesService:
                 "turn": turn,
                 "winner": victory_state.player if victory_state else None,
                 "victory_type": victory_state.victory_type if victory_state else None,
+                "movement": movement.model_dump(),
             }
         ).eq("game_id", game_id).execute()
 
@@ -64,6 +69,7 @@ class GamesService:
                 "captured_pieces": captured_pieces,
                 "victory_state": victory_state,
                 "pieces": updated_pieces,
+                "movement": movement,
                 "turn": turn,
             }
         )
@@ -72,7 +78,14 @@ class GamesService:
         client = await DatabaseService().get_client()
         response = (
             await client.table("games")
-            .select("pieces", "captured_pieces", "winner", "victory_type", "turn")
+            .select(
+                "pieces",
+                "captured_pieces",
+                "winner",
+                "victory_type",
+                "movement",
+                "turn",
+            )
             .eq("game_id", game_id)
             .execute()
         )
@@ -94,6 +107,7 @@ class GamesService:
                 if game_state.winner and game_state.victory_type
                 else None
             ),
+            movement=game_state.movement,
             turn=game_state.turn,
         )
 

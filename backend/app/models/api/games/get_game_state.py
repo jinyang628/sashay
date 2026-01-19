@@ -3,7 +3,7 @@ from typing import Optional
 from pydantic import BaseModel
 
 from app.models.game.base import Player
-from app.models.game.engine import VictoryState, VictoryType
+from app.models.game.engine import Movement, VictoryState, VictoryType
 
 
 class GameState(BaseModel):
@@ -11,6 +11,7 @@ class GameState(BaseModel):
     captured_pieces: list
     winner: Optional[Player]
     victory_type: Optional[VictoryType]
+    movement: Optional[Movement]
     turn: int
 
 
@@ -19,4 +20,5 @@ class GetGameStateResponse(BaseModel):
     pieces: list
     captured_pieces: list
     victory_state: Optional[VictoryState]
+    movement: Optional[Movement]
     turn: int

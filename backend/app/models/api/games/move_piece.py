@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 from typing_extensions import Union
 
 from app.models.game.base import Position
-from app.models.game.engine import Dancer, Master, VictoryState
+from app.models.game.engine import Dancer, Master, Movement, VictoryState
 
 Piece = Annotated[Union[Dancer, Master], Field(discriminator="piece_type")]
 
@@ -20,4 +20,5 @@ class MovePieceResponse(BaseModel):
     captured_pieces: list[Piece]
     victory_state: Optional[VictoryState]
     pieces: list[Piece]
+    movement: Optional[Movement]
     turn: int

@@ -252,6 +252,11 @@ class VictoryState(BaseModel):
     victory_type: VictoryType
 
 
+class Movement(BaseModel):
+    previous_position: Position
+    new_position: Position
+
+
 class GameEngine:
     def __init__(self, pieces: list[Piece]):
         self.game_board = GameBoard(pieces=pieces)
