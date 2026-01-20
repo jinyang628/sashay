@@ -9,7 +9,8 @@ export async function initializeCapture(game_id: string): Promise<InitializeCapt
     const request = initializeCaptureRequestSchema.parse({
       game_id: game_id,
     });
-    await axios.post(`${process.env.SERVER_BASE_URL}/api/v1/games/initialize/capture`, request);
+    const response = await axios.post<InitializeCaptureResponse>(`${process.env.SERVER_BASE_URL}/api/v1/games/initialize/capture`, request);
+    return response.data;
   } catch (error) {
     console.error('Error initializing pieces:', error);
     throw error;
