@@ -6,8 +6,15 @@ from typing import Any, Literal, Optional
 
 from pydantic import BaseModel, Field
 
-from app.models.game.base import (COLS, ROWS, Marking, PieceLimits, Player,
-                                  Position, get_player_side_rows)
+from app.models.game.base import (
+    COLS,
+    ROWS,
+    PieceLimits,
+    Player,
+    Position,
+    get_player_side_rows,
+    Marking,
+)
 
 
 class GameBoard:
@@ -123,13 +130,9 @@ class Dancer(Piece):
 
         top_blocked = (row - 1 < 0) or (game_board.board[row - 1][col] is not None)
 
-        right_blocked = (col + 1 >= COLS) or (
-            game_board.board[row][col + 1] is not None
-        )
+        right_blocked = (col + 1 >= COLS) or (game_board.board[row][col + 1] is not None)
 
-        bottom_blocked = (row + 1 >= ROWS) or (
-            game_board.board[row + 1][col] is not None
-        )
+        bottom_blocked = (row + 1 >= ROWS) or (game_board.board[row + 1][col] is not None)
 
         left_blocked = (col - 1 < 0) or (game_board.board[row][col - 1] is not None)
 
@@ -204,17 +207,13 @@ class Master(Piece):
             game_board.board[row - 1][col + 1] is not None
         )
 
-        right_blocked = (col + 1 >= COLS) or (
-            game_board.board[row][col + 1] is not None
-        )
+        right_blocked = (col + 1 >= COLS) or (game_board.board[row][col + 1] is not None)
 
         bottom_right_blocked = (row + 1 >= ROWS or col + 1 >= COLS) or (
             game_board.board[row + 1][col + 1] is not None
         )
 
-        bottom_blocked = (row + 1 >= ROWS) or (
-            game_board.board[row + 1][col] is not None
-        )
+        bottom_blocked = (row + 1 >= ROWS) or (game_board.board[row + 1][col] is not None)
 
         bottom_left_blocked = (row + 1 >= ROWS or col - 1 < 0) or (
             game_board.board[row + 1][col - 1] is not None
@@ -271,9 +270,7 @@ class GameEngine:
 
     def move_piece(self, piece: Piece, new_position: Position) -> None:
         original_position = piece.position
-        possible_new_positions: list[Position] = self.get_possible_new_positions(
-            piece=piece
-        )
+        possible_new_positions: list[Position] = self.get_possible_new_positions(piece=piece)
         if not any(
             pos.row == new_position.row and pos.col == new_position.col
             for pos in possible_new_positions
@@ -330,15 +327,11 @@ class GameEngine:
         """
         pieces_on_board = self.game_board.get_pieces()
         player_one_has_spy = any(
-            isinstance(piece, Dancer)
-            and piece.is_spy
-            and piece.player == Player.PLAYER_ONE
+            isinstance(piece, Dancer) and piece.is_spy and piece.player == Player.PLAYER_ONE
             for piece in pieces_on_board
         )
         player_two_has_spy = any(
-            isinstance(piece, Dancer)
-            and piece.is_spy
-            and piece.player == Player.PLAYER_TWO
+            isinstance(piece, Dancer) and piece.is_spy and piece.player == Player.PLAYER_TWO
             for piece in pieces_on_board
         )
 
@@ -354,11 +347,7 @@ class GameEngine:
         top_row_index = 0
         for col in range(COLS):
             piece = self.game_board.board[top_row_index][col]
-            if (
-                isinstance(piece, Dancer)
-                and piece.is_spy
-                and piece.player == Player.PLAYER_TWO
-            ):
+            if isinstance(piece, Dancer) and piece.is_spy and piece.player == Player.PLAYER_TWO:
                 return VictoryState(
                     player=Player.PLAYER_TWO,
                     victory_type=VictoryType.ALLY_SPY_INFILTRATED,
@@ -367,11 +356,7 @@ class GameEngine:
         bottom_row_index = ROWS - 1
         for col in range(COLS):
             piece = self.game_board.board[bottom_row_index][col]
-            if (
-                isinstance(piece, Dancer)
-                and piece.is_spy
-                and piece.player == Player.PLAYER_ONE
-            ):
+            if isinstance(piece, Dancer) and piece.is_spy and piece.player == Player.PLAYER_ONE:
                 return VictoryState(
                     player=Player.PLAYER_ONE,
                     victory_type=VictoryType.ALLY_SPY_INFILTRATED,
