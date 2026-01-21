@@ -16,6 +16,7 @@ import { Card } from '@/components/ui/card';
 import { Stage } from '@/types/game';
 
 import {
+  GameState,
   PIECE_LIMITS,
   PlanningPhasePlacementMode,
   Player,
@@ -23,8 +24,11 @@ import {
   victoryTypeEnum,
 } from '@/lib/game/base';
 
+import PieceTally from './piece-tally';
+
 interface SidebarProps {
   stage: Stage;
+  gameState: GameState;
   pieceCounts: {
     DANCER: number;
     MASTER: number;
@@ -47,6 +51,7 @@ enum PlanningState {
 
 export default function Sidebar({
   stage,
+  gameState,
   pieceCounts,
   planningPhasePlacementMode,
   validationError,
@@ -205,8 +210,9 @@ export default function Sidebar({
           )}
 
           {stage === Stage.ACTIVE && (
-            <div className="flex flex-1 flex-col items-center justify-center">
-              <p className="text-muted-foreground text-center">Active game placeholder</p>
+            <div className="flex flex-1 flex-col gap-20">
+              <PieceTally pieces={gameState.allyPieces} isOpponent={false} />
+              <PieceTally pieces={gameState.enemyPieces} isOpponent={true} />
             </div>
           )}
         </>

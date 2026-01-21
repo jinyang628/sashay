@@ -392,6 +392,7 @@ export default function PlanningInterface() {
     <div className="mx-auto flex h-[90vh] max-w-6xl flex-row gap-8 p-8">
       <Sidebar
         stage={stage}
+        gameState={gameState}
         pieceCounts={pieceCounts}
         planningPhasePlacementMode={planningPhasePlacementMode}
         validationError={validationError}
