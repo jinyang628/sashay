@@ -9,6 +9,7 @@ from app.models.api.games.initialize import (InitializeCaptureRequest,
                                              InitializeCaptureResponse,
                                              InitializeRequest)
 from app.models.api.games.move_piece import MovePieceRequest, MovePieceResponse
+from app.models.api.games.toggle_marking import ToggleMarkingRequest
 from app.services.games import GamesService
 from app.utils.errors import RoomNotFoundError
 
@@ -143,4 +144,34 @@ class GamesController:
                     pieces=[],
                     movement=None,
                     turn=-1,
+                )
+
+        @router.post(
+            "/pieces/marking",
+        )
+        async def toggle_marking(input: ToggleMarkingRequest) -> JSONResponse:
+            try:
+                log.info("Toggling marking for game %s", input.game_id)
+                await self.service.toggle_marking(
+                    game_id=input.game_id,
+                    piece_id=input.piece_id,
+                    marking=input.marking,
+                )
+                return JSONResponse(
+                    content={"message": "Marking toggled successfully"},
+                    status_code=httpx.codes.OK,
+                )
+            except RoomNotFoundError as e:
+                log.exception("Room not found for game %s", input.game_id)
+                return JSONResponse(
+                    content={"message": "Room not found"},
+                    status_code=httpx.codes.NOT_FOUND,
+                )
+            except Exception as e:
+                log.exception(
+                    "Error toggling marking for game %s: %s", input.game_id, e
+                )
+                return JSONResponse(
+                    content={"message": "Error toggling marking"},
+                    status_code=httpx.codes.INTERNAL_SERVER_ERROR,
                 )

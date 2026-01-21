@@ -6,8 +6,8 @@ from typing import Any, Literal, Optional
 
 from pydantic import BaseModel, Field
 
-from app.models.game.base import (COLS, ROWS, PieceLimits, Player, Position,
-                                  get_player_side_rows)
+from app.models.game.base import (COLS, ROWS, Marking, PieceLimits, Player,
+                                  Position, get_player_side_rows)
 
 
 class GameBoard:
@@ -51,6 +51,10 @@ class GameBoard:
     def remove_piece(self, piece: "Piece") -> None:
         self.board[piece.position.row][piece.position.col] = None
 
+    def toggle_marking(self, piece: "Piece", marking: Marking) -> None:
+        piece.marking = marking
+        self.board[piece.position.row][piece.position.col] = piece
+
     def get_pieces(self) -> list["Piece"]:
         return [piece for row in self.board for piece in row if piece is not None]
 
@@ -58,12 +62,6 @@ class GameBoard:
 class PieceType(StrEnum):
     DANCER = "dancer"
     MASTER = "master"
-
-
-class Marking(StrEnum):
-    NONE = "NONE"
-    SPY = "SPY"
-    DANCER = "DANCER"
 
 
 class Piece(BaseModel):
@@ -284,6 +282,9 @@ class GameEngine:
         piece.move(new_position=new_position)
         self.game_board.board[original_position.row][original_position.col] = None
         self.game_board.board[new_position.row][new_position.col] = piece
+
+    def toggle_marking(self, piece: Piece, marking: Marking) -> None:
+        self.game_board.toggle_marking(piece=piece, marking=marking)
 
     def process_potential_capture(self, new_position: Position) -> list[Piece]:
         captured_pieces: list[Piece] = []

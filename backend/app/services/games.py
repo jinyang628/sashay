@@ -7,8 +7,8 @@ from app.models.api.games.get_game_state import GameState, GetGameStateResponse
 from app.models.api.games.initialize import InitializeCaptureResponse
 from app.models.api.games.move_piece import MovePieceResponse
 from app.models.game.base import Position
-from app.models.game.engine import (GameBoard, GameEngine, Movement, Piece,
-                                    VictoryState, parse_piece)
+from app.models.game.engine import (GameBoard, GameEngine, Marking, Movement,
+                                    Piece, VictoryState, parse_piece)
 from app.services.database import DatabaseService
 from app.utils.errors import (InvalidInitializationError, NotPlayerTurnError,
                               RoomNotFoundError)
@@ -194,3 +194,43 @@ class GamesService:
             await client.table("games").update({"pieces": existing_pieces}).eq(
                 "game_id", game_id
             ).execute()
+
+    async def toggle_marking(
+        self, game_id: str, piece_id: str, marking: Marking
+    ) -> None:
+        client = await DatabaseService().get_client()
+        response = (
+            await client.table("games")
+            .select("pieces")
+            .eq("game_id", game_id)
+            .execute()
+        )
+        if not response.data:
+            raise RoomNotFoundError(
+                status_code=httpx.codes.NOT_FOUND,
+                detail=f"Room not found",
+            )
+        if not isinstance(response.data[0], dict) or "pieces" not in response.data[0]:
+            raise Exception(
+                f"No 'pieces' key found in existing game data for game {game_id}"
+            )
+        existing_pieces = response.data[0]["pieces"]
+        if not isinstance(existing_pieces, list):
+            raise Exception(
+                f"'pieces' key is not a list in existing game data for game {game_id}"
+            )
+        game_state: GetGameStateResponse = await self.get_game_state(game_id=game_id)
+        raw_pieces = game_state.pieces
+        curr_pieces: list[Piece] = [parse_piece(p) for p in raw_pieces]
+        matching_piece = next((p for p in curr_pieces if p.id == piece_id), None)
+        if matching_piece is None:
+            raise ValueError(f"Piece with id {piece_id} not found in game")
+
+        game_engine = GameEngine(pieces=curr_pieces)
+        game_engine.toggle_marking(piece=matching_piece, marking=marking)
+        updated_pieces: list[Piece] = game_engine.game_board.get_pieces()
+        await client.table("games").update(
+            {
+                "pieces": [p.model_dump() for p in updated_pieces],
+            }
+        ).eq("game_id", game_id).execute()

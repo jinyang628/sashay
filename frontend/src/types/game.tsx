@@ -1,6 +1,14 @@
 import { z } from 'zod';
 
-import { pieceSchema, positionSchema, victoryStateSchema } from '@/lib/game/base';
+import { markingEnum, pieceSchema, positionSchema, victoryStateSchema } from '@/lib/game/base';
+
+export const toggleMarkingRequestSchema = z.object({
+  game_id: z.string(),
+  piece_id: z.string(),
+  marking: markingEnum,
+});
+
+export type ToggleMarkingRequest = z.infer<typeof toggleMarkingRequestSchema>;
 
 export const initializePiecesRequestSchema = z.object({
   game_id: z.string(),

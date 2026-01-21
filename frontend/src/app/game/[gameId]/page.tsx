@@ -5,6 +5,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { getGameState } from '@/actions/game/get-game-state';
 import { initializePieces } from '@/actions/game/initialize';
 import { movePiece } from '@/actions/game/move-piece';
+import { toggleMarking } from '@/actions/game/toggle-marking';
 import { getPlayerNumber } from '@/actions/room/get-player-number';
 import { gameIdAtom } from '@/state/game';
 import { StatusCodes } from 'http-status-codes';
@@ -67,26 +68,39 @@ export default function PlanningInterface() {
   const [validationError, setValidationError] = useState<string | null>(null);
   const [isPlanningPhase, setIsPlanningPhase] = useState<boolean>(true);
 
-  const onToggleEnemyMarking = useCallback((enemyPieceId: string | null) => {
-    setGameState((prev) => {
-      const updatedEnemies = prev.enemyPieces.map((p) => {
-        if (p.id !== enemyPieceId) return p;
-        if (p.pieceType === pieceTypeEnum.enum.master) return p;
-        const nextMarking =
-          p.marking === Marking.NONE
-            ? Marking.MARKED
-            : p.marking === Marking.MARKED
-              ? Marking.CAPTURED
-              : Marking.NONE;
-        p.marking = nextMarking;
-        return p;
+  const onToggleEnemyMarking = useCallback(
+    (enemyPieceId: string | null) => {
+      if (!enemyPieceId) return;
+
+      let nextMarking: Marking | null = null;
+      setGameState((prev) => {
+        const updatedEnemies = prev.enemyPieces.map((p) => {
+          if (p.id !== enemyPieceId) return p;
+          if (p.pieceType === pieceTypeEnum.enum.master) return p;
+          const nm =
+            p.marking === Marking.NONE
+              ? Marking.MARKED
+              : p.marking === Marking.MARKED
+                ? Marking.CAPTURED
+                : Marking.NONE;
+          nextMarking = nm;
+          p.marking = nm;
+          return p;
+        });
+        return {
+          ...prev,
+          enemyPieces: updatedEnemies,
+        };
       });
-      return {
-        ...prev,
-        enemyPieces: updatedEnemies,
-      };
-    });
-  }, []);
+
+      if (nextMarking) {
+        toggleMarking(gameId, enemyPieceId, nextMarking).catch((error) => {
+          console.error('Failed to toggle marking:', error);
+        });
+      }
+    },
+    [gameId],
+  );
 
   useEffect(() => {
     const fetchPlayerNumber = async () => {

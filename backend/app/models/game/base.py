@@ -16,6 +16,12 @@ class Player(StrEnum):
     PLAYER_TWO = "player_two"
 
 
+class Marking(StrEnum):
+    NONE = "NONE"
+    SPY = "SPY"
+    DANCER = "DANCER"
+
+
 def get_player_side_rows(player: Player) -> list[int]:
     if player == Player.PLAYER_ONE:
         return [0, 1, 2, 3]
