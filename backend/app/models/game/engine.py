@@ -61,9 +61,9 @@ class PieceType(StrEnum):
 
 
 class Marking(StrEnum):
-    NONE = "none"
-    SPY = "spy"
-    DANCER = "dancer"
+    NONE = "NONE"
+    SPY = "SPY"
+    DANCER = "DANCER"
 
 
 class Piece(BaseModel):

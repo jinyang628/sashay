@@ -6,6 +6,7 @@ import { VenetianMaskIcon } from '@/components/icons/lucide-venetian-mask';
 
 import { GameState, SelectedPieceState } from '@/lib/game/base';
 import { COLS, Position, ROWS, pieceTypeEnum } from '@/lib/game/base';
+import { Marking } from '@/lib/game/engine';
 import { cn } from '@/lib/utils';
 
 interface GameBoardProps {
@@ -14,6 +15,7 @@ interface GameBoardProps {
   isPlanningPhase: boolean;
   selectedPieceState: SelectedPieceState;
   isPlayerTurn: boolean;
+  onToggleEnemyMarking: (enemyPieceId: string | null) => void;
   handleSquareClick: (row: number, col: number) => void;
 }
 
@@ -23,6 +25,7 @@ export default function Board({
   isPlanningPhase,
   selectedPieceState,
   isPlayerTurn,
+  onToggleEnemyMarking,
   handleSquareClick,
 }: GameBoardProps) {
   const coordinateLabel = (row: number, col: number) => (
@@ -68,7 +71,13 @@ export default function Board({
             return (
               <div
                 key={`${row}-${col}`}
-                onClick={isClickable ? () => handleSquareClick(row, col) : undefined}
+                onClick={
+                  enemyPiece
+                    ? () => onToggleEnemyMarking(enemyPiece?.id || null)
+                    : isClickable
+                      ? () => handleSquareClick(row, col)
+                      : undefined
+                }
                 className={cn(
                   'group relative flex cursor-pointer items-center justify-center transition-all',
                   isSelectedPiece ? 'bg-green-400' : isLight ? 'bg-slate-100' : 'bg-slate-200',
@@ -109,7 +118,16 @@ export default function Board({
                 )}
 
                 {enemyPiece && (
-                  <div className="flex h-14 w-14 scale-100 items-center justify-center rounded-xl bg-slate-400 shadow-md transition-all group-hover:scale-110">
+                  <div className="relative flex h-14 w-14 scale-100 items-center justify-center rounded-xl bg-slate-400 shadow-md transition-all group-hover:scale-110">
+                    {enemyPiece.marking !== Marking.NONE && (
+                      <span className="absolute -top-1 -right-1 rounded-full bg-slate-900 px-1.5 py-0.5 text-[10px] font-semibold text-white uppercase shadow">
+                        {enemyPiece.marking === Marking.MARKED
+                          ? 'Spy'
+                          : enemyPiece.marking === Marking.CAPTURED
+                            ? 'Dancer'
+                            : ''}
+                      </span>
+                    )}
                     {enemyPiece.pieceType === pieceTypeEnum.enum.master ? (
                       <HandFistIcon className="h-8 w-8 text-slate-900" />
                     ) : (

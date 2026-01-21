@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { getGameState } from '@/actions/game/get-game-state';
 import { initializePieces } from '@/actions/game/initialize';
@@ -57,7 +57,6 @@ export default function PlanningInterface() {
     movement: null,
     victoryState: null,
   });
-  console.log(gameState);
 
   const [planningPhasePlacementMode, setPlanningPhasePlacementMode] =
     useState<PlanningPhasePlacementMode>(PlanningPhasePlacementMode.DANCER);
@@ -67,6 +66,27 @@ export default function PlanningInterface() {
   });
   const [validationError, setValidationError] = useState<string | null>(null);
   const [isPlanningPhase, setIsPlanningPhase] = useState<boolean>(true);
+
+  const onToggleEnemyMarking = useCallback((enemyPieceId: string | null) => {
+    setGameState((prev) => {
+      const updatedEnemies = prev.enemyPieces.map((p) => {
+        if (p.id !== enemyPieceId) return p;
+        if (p.pieceType === pieceTypeEnum.enum.master) return p;
+        const nextMarking =
+          p.marking === Marking.NONE
+            ? Marking.MARKED
+            : p.marking === Marking.MARKED
+              ? Marking.CAPTURED
+              : Marking.NONE;
+        p.marking = nextMarking;
+        return p;
+      });
+      return {
+        ...prev,
+        enemyPieces: updatedEnemies,
+      };
+    });
+  }, []);
 
   useEffect(() => {
     const fetchPlayerNumber = async () => {
@@ -289,6 +309,7 @@ export default function PlanningInterface() {
             player: fullPiece.player,
             piece_type: fullPiece.pieceType,
             position: fullPiece.position,
+            marking: fullPiece.marking,
             is_spy: fullPiece.isSpy,
           },
           { row, col },
@@ -345,6 +366,7 @@ export default function PlanningInterface() {
           player: piece.player,
           piece_type: piece.pieceType,
           position: piece.position,
+          marking: piece.marking,
           is_spy: piece.isSpy,
         })),
       );
@@ -383,6 +405,7 @@ export default function PlanningInterface() {
         isPlanningPhase={isPlanningPhase}
         selectedPieceState={selectedPieceState}
         isPlayerTurn={gameState.gameEngine?.isPlayerTurn() ?? false}
+        onToggleEnemyMarking={onToggleEnemyMarking}
         handleSquareClick={handleSquareClick}
       />
     </div>
