@@ -60,11 +60,18 @@ class PieceType(StrEnum):
     MASTER = "master"
 
 
+class Marking(StrEnum):
+    NONE = "none"
+    SPY = "spy"
+    DANCER = "dancer"
+
+
 class Piece(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     piece_type: PieceType
     player: Player
     position: Position
+    marking: Marking
     is_spy: bool
 
     def move(self, new_position: Position) -> None:

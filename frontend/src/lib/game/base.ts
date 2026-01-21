@@ -37,11 +37,16 @@ export const positionSchema = z.object({
 
 export type Position = z.infer<typeof positionSchema>;
 
+export const markingEnum = z.enum(['NONE', 'SPY', 'DANCER']);
+
+export type Marking = z.infer<typeof markingEnum>;
+
 export const pieceSchema = z.object({
   id: z.string(),
   player: playerEnum,
   piece_type: pieceTypeEnum,
   position: positionSchema,
+  marking: markingEnum,
   is_spy: z.boolean(),
 });
 

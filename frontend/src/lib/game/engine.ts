@@ -1,5 +1,11 @@
 import { COLS, PieceType, Player, Position, ROWS, pieceTypeEnum, playerEnum } from './base';
 
+export enum Marking {
+  NONE = 'NONE',
+  MARKED = 'SPY',
+  CAPTURED = 'DANCER',
+}
+
 export class GameBoard {
   public board: (Piece | null)[][];
 
@@ -22,6 +28,7 @@ export abstract class Piece {
     public id: string,
     public player: Player,
     public position: Position,
+    public marking: Marking,
     public isSpy: boolean,
   ) {}
 
