@@ -50,6 +50,7 @@ export default function PlanningInterface() {
   const [player, setPlayer] = useState<Player | null>(null);
   const [playerSideRows, setPlayerSideRows] = useState<number[]>([]);
   const gameId = useAtomValue(gameIdAtom);
+  const churchBellAudioRef = React.useRef<HTMLAudioElement | null>(null);
   const [gameState, setGameState] = useState<GameState>({
     allyPieces: [],
     enemyPieces: [],
@@ -91,6 +92,9 @@ export default function PlanningInterface() {
   }, []);
 
   useEffect(() => {
+    churchBellAudioRef.current = new Audio('/church-bell.mp3');
+    churchBellAudioRef.current.volume = 0.2;
+
     const fetchPlayerNumber = async () => {
       try {
         const response = await getPlayerNumber(gameId, await getCurrentUserId());
@@ -116,6 +120,13 @@ export default function PlanningInterface() {
       }
     };
     fetchPlayerNumber();
+
+    return () => {
+      if (churchBellAudioRef.current) {
+        churchBellAudioRef.current.pause();
+        churchBellAudioRef.current = null;
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -191,6 +202,12 @@ export default function PlanningInterface() {
           const updatedGame = payload.new;
           const oldGame = payload.old;
           if (updatedGame.turn !== oldGame.turn) {
+            if (churchBellAudioRef.current) {
+              churchBellAudioRef.current.currentTime = 0;
+              churchBellAudioRef.current.play().catch((error) => {
+                console.log('Failed to play church bell:', error);
+              });
+            }
             const gameStateData = await getGameState(gameId);
             const mappedPieces = gameStateData.pieces.map((p) =>
               createPieceInstance(p.id, p.player, p.piece_type, p.position, p.is_spy),
