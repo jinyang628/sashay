@@ -29,7 +29,7 @@ import {
   pieceTypeEnum,
   playerEnum,
 } from '@/lib/game/base';
-import { Dancer, GameBoard, GameEngine, Master, Piece } from '@/lib/game/engine';
+import { Dancer, GameBoard, GameEngine, Marking, Master, Piece } from '@/lib/game/engine';
 import { getCurrentUserId, supabase } from '@/lib/supabase';
 
 const createPieceInstance = (
@@ -40,8 +40,8 @@ const createPieceInstance = (
   isSpy: boolean,
 ): Piece => {
   return type === pieceTypeEnum.enum.dancer
-    ? new Dancer(id, player, pos, isSpy)
-    : new Master(id, player, pos, isSpy);
+    ? new Dancer(id, player, pos, Marking.NONE, isSpy)
+    : new Master(id, player, pos, Marking.NONE, isSpy);
 };
 
 export default function PlanningInterface() {
