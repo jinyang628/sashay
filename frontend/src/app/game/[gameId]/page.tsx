@@ -5,6 +5,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { getGameState } from '@/actions/game/get-game-state';
 import { initializePieces } from '@/actions/game/initialize';
 import { movePiece } from '@/actions/game/move-piece';
+import { toggleMarking } from '@/actions/game/toggle-marking';
 import { getPlayerNumber } from '@/actions/room/get-player-number';
 import { gameIdAtom } from '@/state/game';
 import { StatusCodes } from 'http-status-codes';
@@ -15,7 +16,7 @@ import { toast } from 'sonner';
 import Board from '@/components/game/board';
 import Sidebar from '@/components/game/side-bar';
 
-import { MovePieceResponse } from '@/types/game';
+import { MovePieceResponse, Stage } from '@/types/game';
 import { roomStatusEnum } from '@/types/room';
 
 import { GameState, SelectedPieceState } from '@/lib/game/base';
@@ -31,7 +32,6 @@ import {
 } from '@/lib/game/base';
 import { Dancer, GameBoard, GameEngine, Marking, Master, Piece } from '@/lib/game/engine';
 import { getCurrentUserId, supabase } from '@/lib/supabase';
-import { toggleMarking } from '@/actions/game/toggle-marking';
 
 const createPieceInstance = (
   id: string,
@@ -66,7 +66,7 @@ export default function PlanningInterface() {
     possiblePositions: [],
   });
   const [validationError, setValidationError] = useState<string | null>(null);
-  const [isPlanningPhase, setIsPlanningPhase] = useState<boolean>(true);
+  const [stage, setStage] = useState<Stage>(Stage.PLANNING);
 
   const onToggleEnemyMarking = useCallback((enemyPieceId: string | null) => {
     setGameState((prev) => {
@@ -159,7 +159,7 @@ export default function PlanningInterface() {
               movement: gameStateData.movement,
               victoryState: gameStateData.victory_state,
             });
-            setIsPlanningPhase(false);
+            setStage(Stage.ACTIVE);
           }
         },
       )
@@ -173,7 +173,7 @@ export default function PlanningInterface() {
   useEffect(() => {
     if (!gameId || !player) return;
 
-    if (isPlanningPhase) {
+    if (stage === Stage.WAITING) {
       return;
     }
 
@@ -213,7 +213,7 @@ export default function PlanningInterface() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [gameId, player, isPlanningPhase]);
+  }, [gameId, player, stage]);
 
   const pieceCounts = useMemo(() => {
     return {
@@ -231,7 +231,7 @@ export default function PlanningInterface() {
     if (player === null) {
       return;
     }
-    if (isPlanningPhase) {
+    if (stage === Stage.PLANNING) {
       // Remove piece if exists
       const existingIndex = gameState.allyPieces.findIndex(
         (p) => p.position.row === row && p.position.col === col,
@@ -270,7 +270,7 @@ export default function PlanningInterface() {
         ...prev,
         allyPieces: [...prev.allyPieces, newPiece],
       }));
-    } else {
+    } else if (stage === Stage.ACTIVE) {
       if (!gameState.gameEngine) {
         throw new Error('Game engine not found');
       }
@@ -372,6 +372,7 @@ export default function PlanningInterface() {
           is_spy: piece.isSpy,
         })),
       );
+      setStage(Stage.WAITING);
       return true;
     } catch (error) {
       console.error('Error initializing pieces:', error);
@@ -390,7 +391,7 @@ export default function PlanningInterface() {
   return (
     <div className="mx-auto flex h-[90vh] max-w-6xl flex-row gap-8 p-8">
       <Sidebar
-        isPlanningPhase={isPlanningPhase}
+        stage={stage}
         pieceCounts={pieceCounts}
         planningPhasePlacementMode={planningPhasePlacementMode}
         validationError={validationError}
@@ -404,7 +405,7 @@ export default function PlanningInterface() {
       <Board
         PLAYER_SIDE_ROWS={playerSideRows}
         gameState={gameState}
-        isPlanningPhase={isPlanningPhase}
+        stage={stage}
         selectedPieceState={selectedPieceState}
         isPlayerTurn={gameState.gameEngine?.isPlayerTurn() ?? false}
         onToggleEnemyMarking={onToggleEnemyMarking}

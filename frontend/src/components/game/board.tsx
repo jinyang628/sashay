@@ -4,6 +4,8 @@ import { HandFistIcon } from '@/components/icons/lucide-hand-fist';
 import { HighHeelIcon } from '@/components/icons/lucide-lab-high-heel';
 import { VenetianMaskIcon } from '@/components/icons/lucide-venetian-mask';
 
+import { Stage } from '@/types/game';
+
 import { GameState, SelectedPieceState } from '@/lib/game/base';
 import { COLS, Position, ROWS, pieceTypeEnum } from '@/lib/game/base';
 import { Marking } from '@/lib/game/engine';
@@ -12,7 +14,7 @@ import { cn } from '@/lib/utils';
 interface GameBoardProps {
   PLAYER_SIDE_ROWS: number[];
   gameState: GameState;
-  isPlanningPhase: boolean;
+  stage: Stage;
   selectedPieceState: SelectedPieceState;
   isPlayerTurn: boolean;
   onToggleEnemyMarking: (enemyPieceId: string | null) => void;
@@ -22,7 +24,7 @@ interface GameBoardProps {
 export default function Board({
   PLAYER_SIDE_ROWS,
   gameState,
-  isPlanningPhase,
+  stage,
   selectedPieceState,
   isPlayerTurn,
   onToggleEnemyMarking,
@@ -67,7 +69,8 @@ export default function Board({
             const isMovementSquare: boolean =
               gameState.movement?.new_position.row === row &&
               gameState.movement?.new_position.col === col;
-            const isClickable = isPlanningPhase || isPlayerTurn;
+            const isClickable =
+              stage === Stage.PLANNING || (stage === Stage.ACTIVE && isPlayerTurn);
             return (
               <div
                 key={`${row}-${col}`}
@@ -84,7 +87,7 @@ export default function Board({
                   isPossiblePosition && 'bg-green-200',
                   isCapturedPiece && 'bg-red-400',
                   !isPlayerSide &&
-                    isPlanningPhase &&
+                    stage === Stage.PLANNING &&
                     'bg-stripes-muted cursor-not-allowed opacity-30',
                   isMovementSquare && 'bg-green-400',
                   isClickable && 'hover:ring-primary/50 hover:z-10 hover:ring-2',
@@ -140,7 +143,7 @@ export default function Board({
           }),
         )}
       </div>
-      {isPlanningPhase ? (
+      {stage === Stage.PLANNING ? (
         <p className="text-muted-foreground mt-6 flex items-center gap-2 text-sm italic">
           <Info className="h-4 w-4" />
           Click an occupied square to recall the piece to your inventory.

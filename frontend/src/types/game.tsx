@@ -2,6 +2,12 @@ import { z } from 'zod';
 
 import { markingEnum, pieceSchema, positionSchema, victoryStateSchema } from '@/lib/game/base';
 
+export enum Stage {
+  PLANNING = 'PLANNING',
+  WAITING = 'WAITING',
+  ACTIVE = 'ACTIVE',
+}
+
 export const toggleMarkingRequestSchema = z.object({
   game_id: z.string(),
   piece_id: z.string(),

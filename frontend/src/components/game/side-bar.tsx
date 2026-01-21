@@ -13,6 +13,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 
+import { Stage } from '@/types/game';
+
 import {
   PIECE_LIMITS,
   PlanningPhasePlacementMode,
@@ -22,7 +24,7 @@ import {
 } from '@/lib/game/base';
 
 interface SidebarProps {
-  isPlanningPhase: boolean;
+  stage: Stage;
   pieceCounts: {
     DANCER: number;
     MASTER: number;
@@ -44,7 +46,7 @@ enum PlanningState {
 }
 
 export default function Sidebar({
-  isPlanningPhase,
+  stage,
   pieceCounts,
   planningPhasePlacementMode,
   validationError,
@@ -158,9 +160,13 @@ export default function Sidebar({
         gameOverComponent
       ) : (
         <>
-          {isPlanningPhase ? (
+          {stage === Stage.PLANNING ? (
             <h2 className="mb-2 text-center text-xl font-bold tracking-tight">
               Assemble your team
+            </h2>
+          ) : stage === Stage.WAITING ? (
+            <h2 className="mb-2 text-center text-xl font-bold tracking-tight">
+              Waiting for opponent
             </h2>
           ) : (
             <h2 className="mb-2 text-center text-xl font-bold tracking-tight">
@@ -168,7 +174,7 @@ export default function Sidebar({
             </h2>
           )}
 
-          {isPlanningPhase && (
+          {stage === Stage.PLANNING && (
             <div className="flex flex-1 flex-col">
               <div className="flex flex-col gap-3">
                 {dancerPlacementButton}
@@ -191,10 +197,16 @@ export default function Sidebar({
                       Waiting for opponent to finish
                     </span>
                   ) : (
-                    'Lock Placement'
+                    'Lock placement'
                   )}
                 </Button>
               </div>
+            </div>
+          )}
+
+          {stage === Stage.ACTIVE && (
+            <div className="flex flex-1 flex-col items-center justify-center">
+              <p className="text-muted-foreground text-center">Active game placeholder</p>
             </div>
           )}
         </>

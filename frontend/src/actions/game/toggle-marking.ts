@@ -1,10 +1,11 @@
 'use server';
 
 import axios from 'axios';
-
-import { movePieceRequestSchema } from '@/types/game';
-import { Marking } from '@/lib/game/engine';
 import { StatusCodes } from 'http-status-codes';
+
+import { toggleMarkingRequestSchema } from '@/types/game';
+
+import { Marking } from '@/lib/game/engine';
 
 export async function toggleMarking(
   game_id: string,
@@ -12,7 +13,7 @@ export async function toggleMarking(
   marking: Marking,
 ): Promise<void> {
   try {
-    const request = movePieceRequestSchema.parse({
+    const request = toggleMarkingRequestSchema.parse({
       game_id: game_id,
       piece_id: piece_id,
       marking: marking,
