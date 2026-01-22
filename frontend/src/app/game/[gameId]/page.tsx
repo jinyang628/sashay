@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
+
+import React, { useEffect, useMemo, useState } from 'react';
 
 import { getGameState } from '@/actions/game/get-game-state';
 import { initializePieces } from '@/actions/game/initialize';
@@ -46,6 +48,7 @@ const createPieceInstance = (
 };
 
 export default function PlanningInterface() {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [player, setPlayer] = useState<Player | null>(null);
   const [playerSideRows, setPlayerSideRows] = useState<number[]>([]);
@@ -69,27 +72,31 @@ export default function PlanningInterface() {
   const [validationError, setValidationError] = useState<string | null>(null);
   const [stage, setStage] = useState<Stage>(Stage.PLANNING);
 
-  const onToggleEnemyMarking = useCallback((enemyPieceId: string | null) => {
-    setGameState((prev) => {
+  const onToggleEnemyMarking = async (enemyPieceId: string | null) => {
+    if (!enemyPieceId) return;
+    const piece = gameState.enemyPieces.find((p) => p.id === enemyPieceId);
+    if (!piece || piece.pieceType === pieceTypeEnum.enum.master) return;
+
+    const nextMarking =
+      piece.marking === Marking.NONE
+        ? Marking.MARKED
+        : piece.marking === Marking.MARKED
+          ? Marking.CAPTURED
+          : Marking.NONE;
+
+    await toggleMarking(gameId, enemyPieceId, nextMarking);
+
+    setGameState((prev: GameState) => {
       const updatedEnemies = prev.enemyPieces.map((p) => {
         if (p.id !== enemyPieceId) return p;
-        if (p.pieceType === pieceTypeEnum.enum.master) return p;
-        const nextMarking =
-          p.marking === Marking.NONE
-            ? Marking.MARKED
-            : p.marking === Marking.MARKED
-              ? Marking.CAPTURED
-              : Marking.NONE;
-        toggleMarking(gameId, enemyPieceId, nextMarking);
-        p.marking = nextMarking;
-        return p;
+        return { ...p, marking: nextMarking } as Piece;
       });
       return {
         ...prev,
         enemyPieces: updatedEnemies,
       };
     });
-  }, []);
+  };
 
   useEffect(() => {
     churchBellAudioRef.current = new Audio('/church-bell.mp3');
@@ -101,7 +108,7 @@ export default function PlanningInterface() {
 
         if (response.is_player_one === null) {
           toast.error('You are not a player in this game');
-          window.location.replace('/');
+          router.replace('/');
           return;
         }
 
@@ -127,7 +134,7 @@ export default function PlanningInterface() {
         churchBellAudioRef.current = null;
       }
     };
-  }, []);
+  }, [gameId, router]);
 
   useEffect(() => {
     if (!gameId || !player) return;

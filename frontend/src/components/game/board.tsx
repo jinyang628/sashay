@@ -55,6 +55,11 @@ export default function Board({
             const enemyPiece = gameState.enemyPieces.find(
               (p) => p.position.row === row && p.position.col === col,
             );
+            if (enemyPiece) {
+              console.log('Enemy Piece marking:');
+              console.log(enemyPiece?.marking);
+            }
+
             const isPlayerSide = PLAYER_SIDE_ROWS.includes(row);
             const isLight = (row + col) % 2 === 0;
             const isPossiblePosition: boolean = selectedPieceState.possiblePositions.some(
