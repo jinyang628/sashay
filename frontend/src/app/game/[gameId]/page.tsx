@@ -40,11 +40,12 @@ const createPieceInstance = (
   player: Player,
   type: PieceType,
   pos: Position,
+  marking: Marking,
   isSpy: boolean,
 ): Piece => {
   return type === pieceTypeEnum.enum.dancer
-    ? new Dancer(id, player, pos, Marking.NONE, isSpy)
-    : new Master(id, player, pos, Marking.NONE, isSpy);
+    ? new Dancer(id, player, pos, marking, isSpy)
+    : new Master(id, player, pos, marking, isSpy);
 };
 
 export default function PlanningInterface() {
@@ -79,13 +80,13 @@ export default function PlanningInterface() {
 
     const nextMarking =
       piece.marking === Marking.NONE
-        ? Marking.MARKED
-        : piece.marking === Marking.MARKED
-          ? Marking.CAPTURED
+        ? Marking.SPY
+        : piece.marking === Marking.SPY
+          ? Marking.DANCER
           : Marking.NONE;
 
-    await toggleMarking(gameId, enemyPieceId, nextMarking);
-
+    // Update local state optimistically before the database update
+    // This ensures the UI updates immediately and won't be overwritten by the subscription
     setGameState((prev: GameState) => {
       const updatedEnemies = prev.enemyPieces.map((p) => {
         if (p.id !== enemyPieceId) return p;
@@ -96,6 +97,8 @@ export default function PlanningInterface() {
         enemyPieces: updatedEnemies,
       };
     });
+
+    await toggleMarking(gameId, enemyPieceId, nextMarking);
   };
 
   useEffect(() => {
@@ -157,21 +160,49 @@ export default function PlanningInterface() {
               allyPieces: gameStateData.pieces
                 .filter((p) => p.player === player)
                 .map((p) =>
-                  createPieceInstance(p.id, p.player, p.piece_type, p.position, p.is_spy),
+                  createPieceInstance(
+                    p.id,
+                    p.player,
+                    p.piece_type,
+                    p.position,
+                    p.marking as Marking,
+                    p.is_spy,
+                  ),
                 ),
               enemyPieces: gameStateData.pieces
                 .filter((p) => p.player !== player)
                 .map((p) =>
-                  createPieceInstance(p.id, p.player, p.piece_type, p.position, p.is_spy),
+                  createPieceInstance(
+                    p.id,
+                    p.player,
+                    p.piece_type,
+                    p.position,
+                    p.marking as Marking,
+                    p.is_spy,
+                  ),
                 ),
               capturedPieces: gameStateData.captured_pieces.map((p) =>
-                createPieceInstance(p.id, p.player, p.piece_type, p.position, p.is_spy),
+                createPieceInstance(
+                  p.id,
+                  p.player,
+                  p.piece_type,
+                  p.position,
+                  p.marking as Marking,
+                  p.is_spy,
+                ),
               ),
               gameEngine: new GameEngine(
                 player,
                 0,
                 gameStateData.pieces.map((p) =>
-                  createPieceInstance(p.id, p.player, p.piece_type, p.position, p.is_spy),
+                  createPieceInstance(
+                    p.id,
+                    p.player,
+                    p.piece_type,
+                    p.position,
+                    p.marking as Marking,
+                    p.is_spy,
+                  ),
                 ),
               ),
               movement: gameStateData.movement,
@@ -191,7 +222,7 @@ export default function PlanningInterface() {
   useEffect(() => {
     if (!gameId || !player) return;
 
-    if (stage === Stage.WAITING) {
+    if (stage === Stage.WAITING || stage === Stage.PLANNING) {
       return;
     }
 
@@ -208,7 +239,9 @@ export default function PlanningInterface() {
         async (payload) => {
           const updatedGame = payload.new;
           const oldGame = payload.old;
-          if (updatedGame.turn !== oldGame.turn) {
+          console.log(updatedGame.turn);
+          console.log(oldGame.turn);
+          if (oldGame && updatedGame.turn !== oldGame.turn) {
             if (churchBellAudioRef.current) {
               churchBellAudioRef.current.currentTime = 0;
               churchBellAudioRef.current.play().catch((error) => {
@@ -217,13 +250,27 @@ export default function PlanningInterface() {
             }
             const gameStateData = await getGameState(gameId);
             const mappedPieces = gameStateData.pieces.map((p) =>
-              createPieceInstance(p.id, p.player, p.piece_type, p.position, p.is_spy),
+              createPieceInstance(
+                p.id,
+                p.player,
+                p.piece_type,
+                p.position,
+                p.marking as Marking,
+                p.is_spy,
+              ),
             );
             setGameState({
               allyPieces: mappedPieces.filter((p) => p.player === player),
               enemyPieces: mappedPieces.filter((p) => p.player !== player),
               capturedPieces: gameStateData.captured_pieces.map((p) =>
-                createPieceInstance(p.id, p.player, p.piece_type, p.position, p.is_spy),
+                createPieceInstance(
+                  p.id,
+                  p.player,
+                  p.piece_type,
+                  p.position,
+                  p.marking as Marking,
+                  p.is_spy,
+                ),
               ),
               gameEngine: new GameEngine(player, updatedGame.turn, mappedPieces),
               movement: gameStateData.movement,
@@ -289,7 +336,14 @@ export default function PlanningInterface() {
           : pieceTypeEnum.enum.dancer;
       const isSpy = planningPhasePlacementMode === PlanningPhasePlacementMode.SPY;
 
-      const newPiece = createPieceInstance(crypto.randomUUID(), player, type, { row, col }, isSpy);
+      const newPiece = createPieceInstance(
+        crypto.randomUUID(),
+        player,
+        type,
+        { row, col },
+        Marking.NONE,
+        isSpy,
+      );
       setGameState((prev) => ({
         ...prev,
         allyPieces: [...prev.allyPieces, newPiece],
@@ -345,13 +399,27 @@ export default function PlanningInterface() {
           return;
         }
         const mappedPieces = response.pieces.map((p) =>
-          createPieceInstance(p.id, p.player, p.piece_type, p.position, p.is_spy),
+          createPieceInstance(
+            p.id,
+            p.player,
+            p.piece_type,
+            p.position,
+            p.marking as Marking,
+            p.is_spy,
+          ),
         );
         setGameState({
           allyPieces: mappedPieces.filter((p) => p.player === player),
           enemyPieces: mappedPieces.filter((p) => p.player !== player),
           capturedPieces: response.captured_pieces.map((p) =>
-            createPieceInstance(p.id, p.player, p.piece_type, p.position, p.is_spy),
+            createPieceInstance(
+              p.id,
+              p.player,
+              p.piece_type,
+              p.position,
+              p.marking as Marking,
+              p.is_spy,
+            ),
           ),
           gameEngine: new GameEngine(player, response.turn, mappedPieces),
           movement: response.movement,

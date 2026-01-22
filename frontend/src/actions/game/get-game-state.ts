@@ -19,7 +19,6 @@ export async function getGameState(game_id: string): Promise<GetGameStateRespons
       },
     );
     if (response.status === StatusCodes.OK) {
-      console.log('Pieces retrieved successfully');
       return response.data;
     } else {
       throw new Error('Failed to get pieces', { cause: response.data });

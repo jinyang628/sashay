@@ -55,10 +55,6 @@ export default function Board({
             const enemyPiece = gameState.enemyPieces.find(
               (p) => p.position.row === row && p.position.col === col,
             );
-            if (enemyPiece) {
-              console.log('Enemy Piece marking:');
-              console.log(enemyPiece?.marking);
-            }
 
             const isPlayerSide = PLAYER_SIDE_ROWS.includes(row);
             const isLight = (row + col) % 2 === 0;
@@ -129,9 +125,9 @@ export default function Board({
                   <div className="relative flex h-14 w-14 scale-100 items-center justify-center rounded-xl bg-slate-400 shadow-md transition-all group-hover:scale-110">
                     {enemyPiece.marking !== Marking.NONE && (
                       <span className="absolute -top-1 -right-1 rounded-full bg-slate-900 px-1.5 py-0.5 text-[10px] font-semibold text-white uppercase shadow">
-                        {enemyPiece.marking === Marking.MARKED
+                        {enemyPiece.marking === Marking.SPY
                           ? 'Spy'
-                          : enemyPiece.marking === Marking.CAPTURED
+                          : enemyPiece.marking === Marking.DANCER
                             ? 'Dancer'
                             : ''}
                       </span>

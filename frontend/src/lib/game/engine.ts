@@ -2,8 +2,8 @@ import { COLS, PieceType, Player, Position, ROWS, pieceTypeEnum, playerEnum } fr
 
 export enum Marking {
   NONE = 'NONE',
-  MARKED = 'SPY',
-  CAPTURED = 'DANCER',
+  SPY = 'SPY',
+  DANCER = 'DANCER',
 }
 
 export class GameBoard {
