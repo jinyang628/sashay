@@ -68,8 +68,11 @@ export default function Board({
               (p) => p.position.row === row && p.position.col === col,
             );
             const isMovementSquare: boolean =
-              gameState.movement?.new_position.row === row &&
-              gameState.movement?.new_position.col === col;
+              (gameState.movement?.new_position.row === row &&
+                gameState.movement?.new_position.col === col) ||
+              (gameState.movement?.previous_position.row === row &&
+                gameState.movement?.previous_position.col === col);
+            console.log(gameState.movement);
             const isClickable =
               stage === Stage.PLANNING || (stage === Stage.ACTIVE && isPlayerTurn);
             return (
@@ -85,12 +88,12 @@ export default function Board({
                 className={cn(
                   'group relative flex cursor-pointer items-center justify-center transition-all',
                   isSelectedPiece ? 'bg-green-400' : isLight ? 'bg-slate-100' : 'bg-slate-200',
+                  isMovementSquare && 'bg-yellow-900',
                   isPossiblePosition && 'bg-green-200',
                   isCapturedPiece && 'bg-red-400',
                   !isPlayerSide &&
                     stage === Stage.PLANNING &&
                     'bg-stripes-muted cursor-not-allowed opacity-30',
-                  isMovementSquare && 'bg-green-400',
                   isClickable && 'hover:ring-primary/50 hover:z-10 hover:ring-2',
                 )}
               >

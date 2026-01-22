@@ -49,7 +49,7 @@ class GamesService:
         matching_piece = next((p for p in curr_pieces if p.id == piece.id), None)
         if matching_piece is None:
             raise ValueError(f"Piece with id {piece.id} not found in game")
-
+        original_position: Position = matching_piece.position
         game_engine.move_piece(piece=matching_piece, new_position=new_position)
         captured_pieces: list[Piece] = game_engine.process_potential_capture(
             new_position=new_position
@@ -63,7 +63,7 @@ class GamesService:
                 "game_id", game_id
             ).execute()
         movement: Movement = Movement(
-            previous_position=matching_piece.position,
+            previous_position=original_position,
             new_position=new_position,
         )
         await client.table("games").update(
